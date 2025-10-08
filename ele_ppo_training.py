@@ -228,7 +228,12 @@ if __name__ == "__main__":
             logs["reward"].append(tensordict_data["next", "reward"].mean().item())
             logs["lr"].append(optim.param_groups[0]["lr"])
 
-            if i % eval_freq == 0:
+
+            # I modified the following line to avoid evaluation if eval_freq is None, because I got warning 
+            # when I conisider the big horizon value
+            # if i % eval_freq == 0:
+            if eval_freq and (i % eval_freq == 0):
+    
                 # We evaluate the policy periodically.
                 # Evaluation is rather simple: execute the policy without exploration
                 # (take the expected value of the action distribution) for a given

@@ -11,7 +11,7 @@ ELE_PPO_OUTPUT_DIM_CARTPOLE = 2  # push left or push right
 
 
 # env parameters
-ELE_PPO_HORIZON = 5 #75
+ELE_PPO_HORIZON = 64 #5 #75
 
 ELE_PPO_INC_STEP = True
 # ELE_PPO_MAX_COST = unit_costs.max()
@@ -24,7 +24,7 @@ ELE_PPO_DIRICHLET_ALPHA = None
 ELE_PPO_RANDOM_STATE = 'off'
 
 
-actor_model = 'st'  # 'st', 'nn' soft tree or neural network
+actor_model = 'nn'  # 'st', 'nn' soft tree or neural network
 
 NCS = ELE_PPO_INPUT_DIM_CARTPOLE
 NA = ELE_PPO_OUTPUT_DIM_CARTPOLE
@@ -79,7 +79,7 @@ ELE_PPO_SUB_BATCH_SIZE = ELE_PPO_HORIZON*32 # actually we consider one one mini-
 ELE_PPO_MAX_GRAD_NORM = 1.0
 ELE_PPO_LR = 1e-3
 ELE_PPO_LR_MIN = 1e-5    # lr reduced to lr_min with total_frames // frames_per_batch
-ELE_PPO_EVAL_FREQ = 1
+ELE_PPO_EVAL_FREQ = None #1 # 
 
 # In carpole doen't change this to stochastic becasue the we need to repreduce the intial state and compare the soft tree and nn
 ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be deterministic to choose greedy action because the frozen tree chooses the action with max prob
@@ -93,9 +93,9 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # ELE_ACTOR_VERSION = '20251007-180714_st' # This is soft tree with horizon=20
 
 # ELE_ACTOR_VERSION = '20251008-101241_nn' # This is nn with horizon=5 and for new cartpole with reset seed
-ELE_ACTOR_VERSION = '20251008-104606_st' # This is soft tree with horizon=5 and for new cartpole with reset seed
+# ELE_ACTOR_VERSION = '20251008-104606_st' # This is soft tree with horizon=5 and for new cartpole with reset seed
 
-ELE_ACTOR_HORIZON = 5 #75
+ELE_ACTOR_HORIZON = 64 #5 #75
 ELE_ACTOR_N_EPISODES = 1 # modified to avoid confusion
 
 
