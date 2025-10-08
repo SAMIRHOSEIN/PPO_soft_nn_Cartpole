@@ -26,7 +26,7 @@ from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 from tqdm import tqdm
 from collections import defaultdict
-from torchrl.envs.utils import check_env_specs, set_exploration_type
+from torchrl.envs.utils import set_exploration_type
 
 
 if __name__ == "__main__":
@@ -44,15 +44,13 @@ if __name__ == "__main__":
     
     # environment
     include_step_count = test_constants.ELE_PPO_INC_STEP
-    reset_prob = test_constants.ELE_PPO_RESET_PROB
-    dirichlet_alpha = test_constants.ELE_PPO_DIRICHLET_ALPHA
     random_state = test_constants.ELE_PPO_RANDOM_STATE
     actor_model = test_constants.actor_model 
 
 
 
     horizon = test_constants.ELE_PPO_HORIZON
-    env = create_cartpole_env(horizon)
+    env = create_cartpole_env()
 
     # region: create actor and critic ========================================
     input_dim = test_constants.ELE_PPO_INPUT_DIM_CARTPOLE
@@ -279,18 +277,13 @@ if __name__ == "__main__":
             input_dim=input_dim, output_dim=output_dim,
             actor_cells=actor_cells,
             actor_layers=actor_layers,
-            horizon=horizon, reset_prob=reset_prob,
-            dirichlet_alpha=dirichlet_alpha,
-            include_step_count=include_step_count,
-        )
+            horizon=horizon,         )
     elif actor_model == 'st':
         np.savez(
             os.path.join(save_path, "actor_net_init_params.npz"),
             input_dim=input_dim, output_dim=output_dim,
             depth=depth_soft, beta=beta_soft, apply_batchNorm=batchnorm_soft,
-            horizon=horizon, reset_prob=reset_prob,
-            dirichlet_alpha=dirichlet_alpha,
-            include_step_count=include_step_count,
+            horizon=horizon,
         )
 
     with open(os.path.join(save_path, "learning_logs.pkl"), 'wb') as file:
