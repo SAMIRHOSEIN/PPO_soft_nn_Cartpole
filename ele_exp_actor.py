@@ -24,25 +24,24 @@ from matplotlib.patches import Patch
 
 if __name__ == "__main__":
     import importlib
-    import test_constants
-    importlib.reload(test_constants)
+    import test_constants_carpol
+    importlib.reload(test_constants_carpol)
     
     # load constants
-    horizon = test_constants.ELE_ACTOR_HORIZON
-    n_episodes = test_constants.ELE_ACTOR_N_EPISODES 
-    random_state = test_constants.ELE_ACTOR_RANDOM_STATE_CARTPOLE
-    explore_type = test_constants.ELE_ACTOR_EXPLORE_TYPE
-    actor_model = test_constants.actor_model
+    horizon = test_constants_carpol.ELE_ACTOR_HORIZON
+    n_episodes = test_constants_carpol.ELE_ACTOR_N_EPISODES 
+    explore_type = test_constants_carpol.ELE_ACTOR_EXPLORE_TYPE
+    actor_model = test_constants_carpol.actor_model
 
-    np.random.seed(random_state)
-    torch.manual_seed(random_state)
+    eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
+
 
     # soft tree parameters
-    depth_soft = test_constants.depth_soft
-    beta_soft = test_constants.beta_soft
-    batchnorm_soft = test_constants.batchnorm_soft
+    depth_soft = test_constants_carpol.depth_soft
+    beta_soft = test_constants_carpol.beta_soft
+    batchnorm_soft = test_constants_carpol.batchnorm_soft
 
-    actor_version = test_constants.ELE_ACTOR_VERSION
+    actor_version = test_constants_carpol.ELE_ACTOR_VERSION
     state_dict_path = os.path.join('./assets', f"{actor_version}", "actor_net_state_dict.pt")
     init_params_path = os.path.join('./assets', f"{actor_version}", "actor_net_init_params.npz")
 
@@ -57,8 +56,29 @@ if __name__ == "__main__":
         f"Actor was not trained for horizon={horizon} (training horizon={init_params['horizon'].item()})"
 
     
-    horizon = test_constants.ELE_PPO_HORIZON
+
+
+
+
+
+    # ------------------------------------------------------------------------------
+    horizon = test_constants_carpol.ELE_PPO_HORIZON
     env = create_cartpole_env()
+
+
+    # deterministic initial state for this one episode / Seed once before the collector (for reproducible first reset)
+    random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
+    env.reset(seed=random_seed_before_collector)
+    # ------------------------------------------------------------------------------
+
+
+
+
+
+
+
+    
+
 
 
     # restore actor

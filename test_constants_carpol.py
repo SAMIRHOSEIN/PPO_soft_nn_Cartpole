@@ -11,7 +11,7 @@ ELE_PPO_OUTPUT_DIM_CARTPOLE = 2  # push left or push right
 
 
 # env parameters
-ELE_PPO_HORIZON = 20 #75
+ELE_PPO_HORIZON = 5 #75
 
 ELE_PPO_INC_STEP = True
 # ELE_PPO_MAX_COST = unit_costs.max()
@@ -80,6 +80,8 @@ ELE_PPO_MAX_GRAD_NORM = 1.0
 ELE_PPO_LR = 1e-3
 ELE_PPO_LR_MIN = 1e-5    # lr reduced to lr_min with total_frames // frames_per_batch
 ELE_PPO_EVAL_FREQ = 1
+
+# In carpole doen't change this to stochastic becasue the we need to repreduce the intial state and compare the soft tree and nn
 ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be deterministic to choose greedy action because the frozen tree chooses the action with max prob
 # endregion ==============================================================
 
@@ -88,9 +90,12 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # ELE_ACTOR_VERSION = '20251007-161613_nn' # This is nn with horizon=5
 # ELE_ACTOR_VERSION = '20251007-170244_st' # This is soft tree with horizon=5
 # ELE_ACTOR_VERSION = '20251007-172544_nn' #This is nn with horizon=20
-ELE_ACTOR_VERSION = '20251007-180714_st' # This is soft tree with horizon=20
+# ELE_ACTOR_VERSION = '20251007-180714_st' # This is soft tree with horizon=20
 
-ELE_ACTOR_HORIZON = 20 #75
+# ELE_ACTOR_VERSION = '20251008-101241_nn' # This is nn with horizon=5 and for new cartpole with reset seed
+ELE_ACTOR_VERSION = '20251008-104606_st' # This is soft tree with horizon=5 and for new cartpole with reset seed
+
+ELE_ACTOR_HORIZON = 5 #75
 ELE_ACTOR_N_EPISODES = 1 # modified to avoid confusion
 
 
@@ -101,7 +106,14 @@ ELE_ACTOR_N_EPISODES = 1 # modified to avoid confusion
 
 
 
-ELE_ACTOR_RANDOM_STATE_CARTPOLE = 42
+# ELE_ACTOR_RANDOM_STATE_CARTPOLE = 42
 
+# In carpole doen't change this to stochastic becasue the we need to repreduce the intial state and compare the soft tree and nn
 ELE_ACTOR_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be deterministic to choose greedy action because the frozen tree chooses the action with max prob
 # endregion ==============================================================
+
+
+
+# seeds for reproducible resets in Cartpole env
+ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE = 1234 # seed once before the collector starts. It makes the very first reset deterministic so runs are reproducible.
+ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training and evaluation for both ele_ppo_training.py and ele_exp_actor.py

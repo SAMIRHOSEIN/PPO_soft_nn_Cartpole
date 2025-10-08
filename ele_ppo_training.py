@@ -33,36 +33,45 @@ if __name__ == "__main__":
     import datetime
     version = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    import test_constants
+    import test_constants_carpol
     import importlib
-    importlib.reload(test_constants)
+    importlib.reload(test_constants_carpol)
 
     # torch seed for reproducibility
-    torch_seed = test_constants.ELE_PPO_TORCH_SEED
+    torch_seed = test_constants_carpol.ELE_PPO_TORCH_SEED
     torch.manual_seed(torch_seed)
     device = torch.device("cpu")
     
     # environment
-    include_step_count = test_constants.ELE_PPO_INC_STEP
-    random_state = test_constants.ELE_PPO_RANDOM_STATE
-    actor_model = test_constants.actor_model 
+    include_step_count = test_constants_carpol.ELE_PPO_INC_STEP
+    random_state = test_constants_carpol.ELE_PPO_RANDOM_STATE
+    actor_model = test_constants_carpol.actor_model 
+
+    eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
 
 
-
-    horizon = test_constants.ELE_PPO_HORIZON
+    # ------------------------------------------------------------------------------
+    horizon = test_constants_carpol.ELE_PPO_HORIZON
     env = create_cartpole_env()
 
-    # region: create actor and critic ========================================
-    input_dim = test_constants.ELE_PPO_INPUT_DIM_CARTPOLE
-    output_dim = test_constants.ELE_PPO_OUTPUT_DIM_CARTPOLE
 
-    value_cells = test_constants.ELE_PPO_VALUE_CELLS
-    value_layers = test_constants.ELE_PPO_VALUE_LAYERS
+    # Seed once before the collector (for reproducible first reset)
+    random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
+    env.reset(seed=random_seed_before_collector)
+    # ------------------------------------------------------------------------------
+
+
+    # region: create actor and critic ========================================
+    input_dim = test_constants_carpol.ELE_PPO_INPUT_DIM_CARTPOLE
+    output_dim = test_constants_carpol.ELE_PPO_OUTPUT_DIM_CARTPOLE
+
+    value_cells = test_constants_carpol.ELE_PPO_VALUE_CELLS
+    value_layers = test_constants_carpol.ELE_PPO_VALUE_LAYERS
 
 
     if actor_model == 'nn':
-        actor_cells = test_constants.ELE_PPO_ACTOR_CELLS
-        actor_layers = test_constants.ELE_PPO_ACTOR_LAYERS
+        actor_cells = test_constants_carpol.ELE_PPO_ACTOR_CELLS
+        actor_layers = test_constants_carpol.ELE_PPO_ACTOR_LAYERS
 
         
         # Neural Networks 
@@ -73,9 +82,9 @@ if __name__ == "__main__":
 
     elif actor_model == 'st':
         # soft tree parameters
-        depth_soft = test_constants.depth_soft
-        beta_soft = test_constants.beta_soft
-        batchnorm_soft = test_constants.batchnorm_soft
+        depth_soft = test_constants_carpol.depth_soft
+        beta_soft = test_constants_carpol.beta_soft
+        batchnorm_soft = test_constants_carpol.batchnorm_soft
 
         # Soft Tree
         actor_net = ElementActorSoftTree(
@@ -122,9 +131,9 @@ if __name__ == "__main__":
 
     # region: set up advantage and loss =======================================
     # GAE
-    GAE_gamma = test_constants.ELE_PPO_GAE_GAMMA
-    GAE_lmbda = test_constants.ELE_PPO_GAE_LAMBDA
-    average_GAE = test_constants.ELE_PPO_AVERAGE_GAE
+    GAE_gamma = test_constants_carpol.ELE_PPO_GAE_GAMMA
+    GAE_lmbda = test_constants_carpol.ELE_PPO_GAE_LAMBDA
+    average_GAE = test_constants_carpol.ELE_PPO_AVERAGE_GAE
 
     advantage_module = GAE(
         gamma=GAE_gamma, lmbda=GAE_lmbda,
@@ -132,9 +141,9 @@ if __name__ == "__main__":
         device=device,
     )
 
-    clip_epsilon = test_constants.ELE_PPO_CLIP_EPSILON
-    entropy_eps = test_constants.ELE_PPO_ENTROPY_EPS
-    critic_coef = test_constants.ELE_PPO_CRITIC_COEF
+    clip_epsilon = test_constants_carpol.ELE_PPO_CLIP_EPSILON
+    entropy_eps = test_constants_carpol.ELE_PPO_ENTROPY_EPS
+    critic_coef = test_constants_carpol.ELE_PPO_CRITIC_COEF
 
     # PPO loss
     loss_module = ClipPPOLoss(
@@ -149,8 +158,8 @@ if __name__ == "__main__":
     )
     # endregion ==============================================================
     # region: set up collecor and replay_buffer ===========================================================
-    frames_per_batch = test_constants.ELE_PPO_FRAMES_PER_BATCH
-    total_frames = test_constants.ELE_PPO_TOTAL_FRAMES
+    frames_per_batch = test_constants_carpol.ELE_PPO_FRAMES_PER_BATCH
+    total_frames = test_constants_carpol.ELE_PPO_TOTAL_FRAMES
 
     collector = SyncDataCollector(
         create_env_fn=lambda: env,
@@ -168,13 +177,13 @@ if __name__ == "__main__":
     # endregion ===============================================================
 
     # region: training ===========================================================
-    lr = test_constants.ELE_PPO_LR
-    lr_min = test_constants.ELE_PPO_LR_MIN
-    training_epochs = test_constants.ELE_PPO_TRAINING_EPOCHS
-    sub_batch_size = test_constants.ELE_PPO_SUB_BATCH_SIZE
-    max_grad_norm = test_constants.ELE_PPO_MAX_GRAD_NORM
-    eval_freq = test_constants.ELE_PPO_EVAL_FREQ
-    eval_explore_type = test_constants.ELE_PPO_EVAL_EXPLORE_TYPE
+    lr = test_constants_carpol.ELE_PPO_LR
+    lr_min = test_constants_carpol.ELE_PPO_LR_MIN
+    training_epochs = test_constants_carpol.ELE_PPO_TRAINING_EPOCHS
+    sub_batch_size = test_constants_carpol.ELE_PPO_SUB_BATCH_SIZE
+    max_grad_norm = test_constants_carpol.ELE_PPO_MAX_GRAD_NORM
+    eval_freq = test_constants_carpol.ELE_PPO_EVAL_FREQ
+    eval_explore_type = test_constants_carpol.ELE_PPO_EVAL_EXPLORE_TYPE
 
     optim = torch.optim.Adam(loss_module.parameters(), lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -227,6 +236,15 @@ if __name__ == "__main__":
                 # The ``rollout`` method of the ``env`` can take a policy as argument:
                 # it will then execute this policy at each step.
                 with set_exploration_type(eval_explore_type), torch.no_grad():
+
+
+                    # -------------------------------------------------------------------------
+                    # force identical initial state for evaluation in each iteration
+                    env.reset(seed=eval_seed)
+                    # -------------------------------------------------------------------------
+
+
+
                     # execute a rollout with the trained policy
                     eval_rollout = env.rollout(horizon, actor)
                     logs["eval reward"].append(eval_rollout["next", "reward"].mean().item())

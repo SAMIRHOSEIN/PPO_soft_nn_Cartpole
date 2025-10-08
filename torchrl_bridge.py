@@ -15,13 +15,15 @@ from torchrl.envs import GymWrapper
 _CONST_ACTION_DEFAULT = 0
 
 
-# Gymnasium’s documentation explains that the randomness of the initial state is controlled by the seed argument of reset() 
-# and recommends calling reset(seed=seed) once right after initialisation
+# Note: 2 important points about carpole env:
+    # 1. Gymnasium’s documentation explains that the randomness of the initial state is controlled by the seed argument of reset()
+    # and recommends calling reset(seed=seed) once right after initialisation.
 
-# I didnt consider the horizon in the cartpole env() it has a max episode length of 500 by default), 
-# cause in training(ele_ppo_training.py) we have eval_rollout = env.rollout(horizon, actor) that limits the rollout length to horizon anyway
-# so I removed the horizon argument from create_cartpole_env()
-def create_cartpole_env(random_state: int = 42):
+    # 2. I didnt consider the horizon in the cartpole env() it has a max episode length of 500 by default), 
+    # cause in training(ele_ppo_training.py) we have eval_rollout = env.rollout(horizon, actor) that limits the rollout length to horizon anyway
+    # so I removed the horizon argument from create_cartpole_env()
+    
+def create_cartpole_env():
 
     base_env = gym.make("CartPole-v1")
     env = GymWrapper(base_env, categorical_action_encoding=True)
