@@ -11,30 +11,30 @@ ELE_PPO_OUTPUT_DIM_CARTPOLE = 2  # push left or push right
 
 
 # env parameters
-ELE_PPO_HORIZON = 64 #5 #75
+ELE_PPO_HORIZON = 10 #64 #5 #75
 
-ELE_PPO_INC_STEP = True
+# ELE_PPO_INC_STEP = True
 # ELE_PPO_MAX_COST = unit_costs.max()
 
 # ELE_PPO_RESET_PROB = None
 # ELE_PPO_DIRICHLET_ALPHA = 0.5*np.ones(NCS)
 # ELE_PPO_RANDOM_STATE = 42
-ELE_PPO_RESET_PROB = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
-ELE_PPO_DIRICHLET_ALPHA = None
-ELE_PPO_RANDOM_STATE = 'off'
+# ELE_PPO_RESET_PROB = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
+# ELE_PPO_DIRICHLET_ALPHA = None
+# ELE_PPO_RANDOM_STATE = 'off'
 
 
-actor_model = 'nn'  # 'st', 'nn' soft tree or neural network
+actor_model = 'st'  # 'st', 'nn' soft tree or neural network
 
-NCS = ELE_PPO_INPUT_DIM_CARTPOLE
-NA = ELE_PPO_OUTPUT_DIM_CARTPOLE
+ELE_PPO_INPUT_DIM = ELE_PPO_INPUT_DIM_CARTPOLE
+ELE_PPO_OUTPUT_DIM = ELE_PPO_OUTPUT_DIM_CARTPOLE
 
 # network parameters
 ELE_PPO_TORCH_SEED = 0
-if ELE_PPO_INC_STEP:
-    ELE_PPO_INPUT_DIM = NCS + 1
-else:
-    ELE_PPO_INPUT_DIM = NCS
+# if ELE_PPO_INC_STEP:
+#     ELE_PPO_INPUT_DIM = NCS + 1
+# else:
+#     ELE_PPO_INPUT_DIM = NCS
 
 if actor_model == 'nn':
     ELE_PPO_ACTOR_CELLS = 32
@@ -43,7 +43,7 @@ if actor_model == 'nn':
 ELE_PPO_VALUE_CELLS = 32
 ELE_PPO_VALUE_LAYERS = 2
 
-ELE_PPO_OUTPUT_DIM = NA
+# ELE_PPO_OUTPUT_DIM = NA
 
 
 # soft tree parameters
@@ -79,7 +79,7 @@ ELE_PPO_SUB_BATCH_SIZE = ELE_PPO_HORIZON*32 # actually we consider one one mini-
 ELE_PPO_MAX_GRAD_NORM = 1.0
 ELE_PPO_LR = 1e-3
 ELE_PPO_LR_MIN = 1e-5    # lr reduced to lr_min with total_frames // frames_per_batch
-ELE_PPO_EVAL_FREQ = None #1 # 
+ELE_PPO_EVAL_FREQ = 1 # None or 1 : if I put it 1, I got warning because of big horizon value
 
 # In carpole doen't change this to stochastic becasue the we need to repreduce the intial state and compare the soft tree and nn
 ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be deterministic to choose greedy action because the frozen tree chooses the action with max prob
@@ -95,8 +95,15 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # ELE_ACTOR_VERSION = '20251008-101241_nn' # This is nn with horizon=5 and for new cartpole with reset seed
 # ELE_ACTOR_VERSION = '20251008-104606_st' # This is soft tree with horizon=5 and for new cartpole with reset seed
 
-ELE_ACTOR_HORIZON = 64 #5 #75
-ELE_ACTOR_N_EPISODES = 1 # modified to avoid confusion
+# After removing reset seed 
+# ELE_ACTOR_VERSION = '20251012-105715_nn' # This is nn with horizon=5, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+# ELE_ACTOR_VERSION = '20251012-112330_st' # This is soft tree with horizon=5, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+# ELE_ACTOR_VERSION = '20251012-114656_nn' # This is nn with horizon=10, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+
+
+
+ELE_ACTOR_HORIZON = 10 #64 #5 #75
+ELE_ACTOR_N_EPISODES = 200 
 
 
 # By design the CartPole environment does not let you pass an explicit starting state. 

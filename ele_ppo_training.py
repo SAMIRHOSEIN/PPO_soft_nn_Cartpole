@@ -43,27 +43,26 @@ if __name__ == "__main__":
     device = torch.device("cpu")
     
     # environment
-    include_step_count = test_constants_carpol.ELE_PPO_INC_STEP
-    random_state = test_constants_carpol.ELE_PPO_RANDOM_STATE
+    # include_step_count = test_constants_carpol.ELE_PPO_INC_STEP
+    # random_state = test_constants_carpol.ELE_PPO_RANDOM_STATE
     actor_model = test_constants_carpol.actor_model 
 
-    eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
-
-
     # ------------------------------------------------------------------------------
+    # eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
+
     horizon = test_constants_carpol.ELE_PPO_HORIZON
     env = create_cartpole_env()
 
 
-    # Seed once before the collector (for reproducible first reset)
-    random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
-    env.reset(seed=random_seed_before_collector)
+    # # Seed once before the collector (for reproducible first reset)
+    # random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
+    # env.reset(seed=random_seed_before_collector)
     # ------------------------------------------------------------------------------
 
 
     # region: create actor and critic ========================================
-    input_dim = test_constants_carpol.ELE_PPO_INPUT_DIM_CARTPOLE
-    output_dim = test_constants_carpol.ELE_PPO_OUTPUT_DIM_CARTPOLE
+    input_dim = test_constants_carpol.ELE_PPO_INPUT_DIM
+    output_dim = test_constants_carpol.ELE_PPO_OUTPUT_DIM
 
     value_cells = test_constants_carpol.ELE_PPO_VALUE_CELLS
     value_layers = test_constants_carpol.ELE_PPO_VALUE_LAYERS
@@ -229,11 +228,12 @@ if __name__ == "__main__":
             logs["lr"].append(optim.param_groups[0]["lr"])
 
 
+            #--------------------------------------------------------------------------
             # I modified the following line to avoid evaluation if eval_freq is None, because I got warning 
             # when I conisider the big horizon value
             # if i % eval_freq == 0:
             if eval_freq and (i % eval_freq == 0):
-    
+            #--------------------------------------------------------------------------
                 # We evaluate the policy periodically.
                 # Evaluation is rather simple: execute the policy without exploration
                 # (take the expected value of the action distribution) for a given
@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
                     # -------------------------------------------------------------------------
                     # force identical initial state for evaluation in each iteration
-                    env.reset(seed=eval_seed)
+                    # env.reset(seed=eval_seed)
                     # -------------------------------------------------------------------------
 
 

@@ -33,7 +33,6 @@ if __name__ == "__main__":
     explore_type = test_constants_carpol.ELE_ACTOR_EXPLORE_TYPE
     actor_model = test_constants_carpol.actor_model
 
-    eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
 
 
     # soft tree parameters
@@ -56,28 +55,15 @@ if __name__ == "__main__":
         f"Actor was not trained for horizon={horizon} (training horizon={init_params['horizon'].item()})"
 
     
-
-
-
-
-
     # ------------------------------------------------------------------------------
     horizon = test_constants_carpol.ELE_PPO_HORIZON
     env = create_cartpole_env()
 
 
-    # deterministic initial state for this one episode / Seed once before the collector (for reproducible first reset)
-    random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
-    env.reset(seed=random_seed_before_collector)
+    # # deterministic initial state for this one episode / Seed once before the collector (for reproducible first reset)
+    # random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
+    # env.reset(seed=random_seed_before_collector)
     # ------------------------------------------------------------------------------
-
-
-
-
-
-
-
-    
 
 
 
