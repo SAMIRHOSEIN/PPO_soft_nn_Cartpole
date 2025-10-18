@@ -22,13 +22,12 @@ _CONST_ACTION_DEFAULT = 0
     # 2. I didnt consider the horizon in the cartpole env() it has a max episode length of 500 by default), 
     # cause in training(ele_ppo_training.py) we have eval_rollout = env.rollout(horizon, actor) that limits the rollout length to horizon anyway
     # so I removed the horizon argument from create_cartpole_env()
-    
+
 def create_cartpole_env():
 
     base_env = gym.make("CartPole-v1")
     env = GymWrapper(base_env, categorical_action_encoding=True)
     return env
-
 
 
 

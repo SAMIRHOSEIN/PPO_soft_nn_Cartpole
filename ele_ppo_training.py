@@ -249,7 +249,6 @@ if __name__ == "__main__":
                     # -------------------------------------------------------------------------
 
 
-
                     # execute a rollout with the trained policy
                     eval_rollout = env.rollout(horizon, actor)
                     logs["eval reward"].append(eval_rollout["next", "reward"].mean().item())

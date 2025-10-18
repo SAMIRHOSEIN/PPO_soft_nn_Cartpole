@@ -101,6 +101,18 @@ if __name__ == "__main__":
     logs = defaultdict(list)
     eval_str = ""
 
+
+
+
+
+
+
+
+
+
+
+
+
     with tqdm(total=horizon * n_episodes) as pbar:
         with set_exploration_type(explore_type), torch.no_grad():
             for _ in range(n_episodes):
@@ -124,6 +136,92 @@ if __name__ == "__main__":
     print(f"Average reward: {np.mean(logs['ep reward'])}")
     print(f"Initial state: {logs['observation'][0][0]}")
     print(f"Final state: {logs['observation'][0][-1]}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # EVAL_H = 500
+    # with tqdm(total=EVAL_H * n_episodes) as pbar:
+    #     with set_exploration_type(explore_type), torch.no_grad():
+    #         for _ in range(n_episodes):
+    #             # (optional but explicit) reset before each episode
+    #             _ = env.reset()
+
+    #             # run up to EVAL_H steps
+    #             eval_rollout = env.rollout(EVAL_H, actor)  # may continue after done, so we’ll mask
+
+    #             # ---- mask rewards after first 'done' ----
+    #             r = eval_rollout["next", "reward"].squeeze(-1).cpu().numpy()  # shape [T]
+    #             try:
+    #                 done = eval_rollout["next", "done"].squeeze(-1).cpu().numpy()  # shape [T], bool
+    #                 t_end = np.argmax(done) + 1 if done.any() else len(r)
+    #             except KeyError:
+    #                 # if your tensordict doesn't carry 'done', fall back to full length
+    #                 t_end = len(r)
+
+    #             ep_reward = float(r[:t_end].sum())
+
+    #             logs["observation"].append(eval_rollout["observation"].cpu().numpy())
+    #             logs["action"].append(eval_rollout["action"].cpu().numpy())
+    #             logs["reward"].append(eval_rollout["next", "reward"].cpu().numpy())
+    #             logs["ep reward"].append(ep_reward)
+
+    #             eval_str = f"ep reward: {ep_reward:6.1f} (init: {logs['ep reward'][0]:6.1f})"
+    #             pbar.update(len(r))
+    #             pbar.set_description(eval_str)
+    #             del eval_rollout
+
+    # print(f"Average reward: {np.mean(logs['ep reward']):.1f}")
+    # print(f"Initial state: {logs['observation'][0][0]}")
+    # print(f"Final state:   {logs['observation'][0][-1]}")
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     
@@ -167,3 +265,29 @@ elif actor_model == 'st':
     print(f"input_dim= {input_dim}, output_dim= {output_dim}, horizon= {horizon}, depth= {depth_soft}, beta= {beta_soft}, batchnorm= {batchnorm_soft}\n")
 
 # %%
+# action distribution summary
+all_actions = np.concatenate(logs["action"])
+id2name = {0: "Push Left", 1: "Push Right"}  
+
+# ---- Action sequence for the single evaluation episode (t = 0..T-1 for steps actually taken) ----
+ep0_actions = logs["action"][0].astype(int).flatten()          # shape: (horizon,)
+ep0_obs     = logs["observation"][0]                           # shape: (horizon, obs_len)
+
+ep0_action_names = [id2name.get(int(a), str(int(a))) for a in ep0_actions]
+print("\nEvaluation action sequence (time-ordered):")
+print(", ".join(ep0_action_names))
+
+
+# --- Condition-state distribution per step (episode 0) ---
+ep0_obs = logs["observation"][0]                 # shape: (horizon, obs_dim)
+obs_dim = ep0_obs.shape[1]
+
+# If include_step_count=True, the last obs entry is normalized time; otherwise there is no time column.
+ncs_eff = int(obs_dim)
+
+cs_traj = ep0_obs[:, :ncs_eff]                                # (horizon, ncs)
+
+print("\nCondition-state distribution per step (episode 0):")
+for t, (cs, a) in enumerate(zip(cs_traj, ep0_actions)):
+    cs_str = ", ".join([f"cs{k}={p:.3f}" for k, p in enumerate(cs)])
+    print(f"Step={t:02d}  act={id2name[int(a)]:<14} [{cs_str}]")

@@ -11,7 +11,7 @@ ELE_PPO_OUTPUT_DIM_CARTPOLE = 2  # push left or push right
 
 
 # env parameters
-ELE_PPO_HORIZON = 10 #64 #5 #75
+ELE_PPO_HORIZON = 50 #64 #5 #75
 
 # ELE_PPO_INC_STEP = True
 # ELE_PPO_MAX_COST = unit_costs.max()
@@ -24,7 +24,7 @@ ELE_PPO_HORIZON = 10 #64 #5 #75
 # ELE_PPO_RANDOM_STATE = 'off'
 
 
-actor_model = 'st'  # 'st', 'nn' soft tree or neural network
+actor_model = 'nn'  # 'st', 'nn' soft tree or neural network
 
 ELE_PPO_INPUT_DIM = ELE_PPO_INPUT_DIM_CARTPOLE
 ELE_PPO_OUTPUT_DIM = ELE_PPO_OUTPUT_DIM_CARTPOLE
@@ -79,6 +79,19 @@ ELE_PPO_SUB_BATCH_SIZE = ELE_PPO_HORIZON*32 # actually we consider one one mini-
 ELE_PPO_MAX_GRAD_NORM = 1.0
 ELE_PPO_LR = 1e-3
 ELE_PPO_LR_MIN = 1e-5    # lr reduced to lr_min with total_frames // frames_per_batch
+
+
+
+# I faced this warn when I put ELE_PPO_EVAL_FREQ = 1: WARN: You are calling 'step()' even though this environment has already returned terminated = True. You should always call 'reset()' once you receive 'terminated = True' -- any further steps are undefined behavior.
+# Why I faced this warnn(due to this line of code: eval_rollout = env.rollout(horizon, actor) in ele_ppo_training.py?
+# You create one env: env = create_cartpole_env() and pass that same instance to:
+    # the collector (SyncDataCollector(create_env_fn=lambda: env, ...)), and
+    # the evaluator (env.rollout(horizon, actor)).
+# During evaluation you call env.rollout(horizon, actor) with horizon=50. If CartPole terminates in, say, 9 steps, the rollout still tries to keep stepping to 50 without an env reset → Gym warns:
+    # You are calling step() even though this environment has already returned terminated=True…
+# The warning you saw comes from the evaluation loop stepping past done, not from training. if I don't like see
+# the warning I can set ELE_PPO_EVAL_FREQ to None. again, it doesn't affect training, just the evaluation frequency.
+# and evaluation in training is not important for us because we evaluate the each actor in ele_exp_actor.py
 ELE_PPO_EVAL_FREQ = 1 # None or 1 : if I put it 1, I got warning because of big horizon value
 
 # In carpole doen't change this to stochastic becasue the we need to repreduce the intial state and compare the soft tree and nn
@@ -99,10 +112,12 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # ELE_ACTOR_VERSION = '20251012-105715_nn' # This is nn with horizon=5, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
 # ELE_ACTOR_VERSION = '20251012-112330_st' # This is soft tree with horizon=5, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
 # ELE_ACTOR_VERSION = '20251012-114656_nn' # This is nn with horizon=10, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+# ELE_ACTOR_VERSION = '20251012-122056_st' # This is soft tree with horizon=10, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+ELE_ACTOR_VERSION = '20251012-143121_nn' # This is nn with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+# ELE_ACTOR_VERSION = '20251012-162058_st' # This is soft tree with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
 
 
-
-ELE_ACTOR_HORIZON = 10 #64 #5 #75
+ELE_ACTOR_HORIZON = 50 #64 #5 #75
 ELE_ACTOR_N_EPISODES = 200 
 
 
@@ -124,3 +139,11 @@ ELE_ACTOR_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determinis
 # seeds for reproducible resets in Cartpole env
 ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE = 1234 # seed once before the collector starts. It makes the very first reset deterministic so runs are reproducible.
 ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training and evaluation for both ele_ppo_training.py and ele_exp_actor.py
+
+
+
+# region: which actor model compared(leaning curve) for Plt_LC_nn_st.py ==================================
+ELE_ACTOR_VERSION_nn = '20251012-105715_nn' # This is nn with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+ELE_ACTOR_VERSION_st = '20251012-112330_st' # This is soft tree with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+WINDOW = 50  # for rolling average - integer
+# endregion ==============================================================
