@@ -6,6 +6,8 @@ from torch import device, nn
 # environment
 from torchrl.envs import GymWrapper
 
+import test_constants_carpol
+limit_for_cartpole_env = test_constants_carpol.limit_for_cartpole_env
 
 import gymnasium as gym
 from torchrl.envs import GymWrapper
@@ -22,13 +24,22 @@ _CONST_ACTION_DEFAULT = 0
     # 2. I didnt consider the horizon in the cartpole env() it has a max episode length of 500 by default), 
     # cause in training(ele_ppo_training.py) we have eval_rollout = env.rollout(horizon, actor) that limits the rollout length to horizon anyway
     # so I removed the horizon argument from create_cartpole_env()
-
-def create_cartpole_env():
-
-    base_env = gym.make("CartPole-v1")
-    env = GymWrapper(base_env, categorical_action_encoding=True)
-    return env
-
+if limit_for_cartpole_env:
+    print("limit_for_cartpole_env is True: setting max_episode_steps")
+    # 1- create cartpole env function with horizon argument
+    def create_cartpole_env(max_episode_steps: int = 500):
+        base_env = gym.make("CartPole-v1", max_episode_steps=max_episode_steps)
+        env = GymWrapper(base_env, categorical_action_encoding=True)
+        print(f"max_episode_steps: {base_env.spec.max_episode_steps}")
+        return env
+elif not limit_for_cartpole_env:
+    print("limit_for_cartpole_env is False: max_episode_steps is default 500")
+    # 2- create cartpole env function without horizon argument
+    def create_cartpole_env():
+        base_env = gym.make("CartPole-v1")
+        env = GymWrapper(base_env, categorical_action_encoding=True)
+        print(f"max_episode_steps: {base_env.spec.max_episode_steps}")
+        return env
 
 
 

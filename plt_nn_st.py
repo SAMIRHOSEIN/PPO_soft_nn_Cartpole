@@ -6,12 +6,18 @@ import numpy as np
 import test_constants_carpol
 
 actor_nn = test_constants_carpol.ELE_ACTOR_VERSION_nn
-actor_st = test_constants_carpol.ELE_ACTOR_VERSION_st
+# actor_st = test_constants_carpol.ELE_ACTOR_VERSION_st
 WINDOW = test_constants_carpol.WINDOW  # for rolling average
 beta_soft  = test_constants_carpol.beta_soft
 depth_soft = test_constants_carpol.depth_soft
 
-actors = {actor_nn, actor_st}
+
+
+
+# actors = {actor_nn, actor_st}
+actors = {actor_nn}
+
+
 
 for actor_version in actors:
     # 1) Load logs
@@ -20,25 +26,43 @@ for actor_version in actors:
     with open(pkl_path, "rb") as f:
         logs_loaded = pickle.load(f)
 
-    #  Plot 1: average reward in training (per batch) 
-    train_rewards = logs_loaded.get("reward", [])
-    x_train = list(range(len(train_rewards)))
+    # #  Plot 1: average reward in training (per batch) 
+    # train_rewards = logs_loaded.get("reward", [])
+    # x_train = list(range(len(train_rewards)))
+
+    #  Plot 1: mean episode return collected during training batches
+    train_returns = logs_loaded.get("reward", [])
+    x_train = list(range(len(train_returns)))
+
     plt.figure(figsize=(10, 6))
-    plt.plot(x_train, train_rewards, label="Train Avg Reward (per batch)", alpha=0.8)
-    plt.xlabel("Iteration"); plt.ylabel("Ave Reward(Training)")
-    plt.title(f"Learning Curve — Ave Reward(Training) for {actor_version}")
+    # plt.plot(x_train, train_rewards, label="Train Avg Reward (per batch)", alpha=0.8)
+    # plt.xlabel("Iteration"); plt.ylabel("Ave Reward(Training)")
+    # plt.title(f"Learning Curve — Ave Reward(Training) for {actor_version}")
+    plt.plot(x_train, train_returns, label="Train Avg Episode Return", alpha=0.8)
+    plt.xlabel("Iteration"); plt.ylabel("Avg Episode Return (training)")
+    plt.title(f"Learning Curve — Training Return for {actor_version}")
     plt.grid(True, alpha=0.3); plt.legend(); plt.tight_layout()
     plt.show()
 
-    #  Plot 2: average eval reward in evaluation (per batch) 
-    eval_rewards = logs_loaded.get("eval reward", [])
-    x_eval = list(range(len(eval_rewards)))
+
+
+    # #  Plot 2: average eval reward in evaluation (per batch) 
+    # eval_rewards = logs_loaded.get("eval reward", [])
+    # x_eval = list(range(len(eval_rewards)))
+    #  Plot 2: cumulative evaluation return (per rollout)
+    eval_returns = logs_loaded.get("eval return (sum)")
+    x_eval = list(range(len(eval_returns)))
     plt.figure(figsize=(10, 6))
-    plt.plot(x_eval, eval_rewards, label="Eval Avg Reward (per batch)", alpha=0.8)
-    plt.xlabel("Iteration"); plt.ylabel("Ave Eval Reward")
-    plt.title(f"Learning Curve — Ave Eval Reward for {actor_version}")
+    # plt.plot(x_eval, eval_rewards, label="Eval Avg Reward (per batch)", alpha=0.8)
+    # plt.xlabel("Iteration"); plt.ylabel("Ave Eval Reward")
+    # plt.title(f"Learning Curve — Ave Eval Reward for {actor_version}")
+    plt.plot(x_eval, eval_returns, label="Eval Episode Return", alpha=0.8)
+    plt.xlabel("Iteration"); plt.ylabel("Episode Return (evaluation)")
+    plt.title(f"Learning Curve — Eval Return for {actor_version}")
     plt.grid(True, alpha=0.3); plt.legend(); plt.tight_layout()
     plt.show()
+
+
 
     #  Plot 3: Learning rate schedule
     lr_vals = logs_loaded.get("lr", [])
@@ -49,6 +73,8 @@ for actor_version in actors:
     plt.title(f"Learning Rate Schedule for {actor_version}")
     plt.grid(True, alpha=0.3); plt.legend(); plt.tight_layout()
     plt.show()
+
+
 
 #  Plot 4: Compare rolling average reward per episode (training) between NN and ST
 # To remove initial bias, hide first window-1 points as NaN
@@ -66,18 +92,24 @@ for actor_version in actors:
     with open(pkl_path, "rb") as f:
         logs = pickle.load(f)
 
-    if "reward" not in logs or len(logs["reward"]) == 0:
-        raise KeyError(f"'reward' series missing or empty in {actor_version}")
-
-    series = np.asarray(logs["reward"], dtype=float)
+    # if "reward" not in logs or len(logs["reward"]) == 0:
+    #     raise KeyError(f"'reward' series missing or empty in {actor_version}")
+    series = logs.get("train return (mean)") or logs.get("reward")
+    if not series:
+        raise KeyError(f"Training return series missing or empty in {actor_version}")
+    
+    # series = np.asarray(logs["reward"], dtype=float)
+    series = np.asarray(series, dtype=float)    
     ra = rolling_mean_strict(series, WINDOW)
 
     x = np.arange(len(ra))
     plt.plot(x, ra, label=f"{actor_version} (window={WINDOW})", alpha=0.9)
 
 plt.xlabel("Episode (index)")
-plt.ylabel("Rolling Avg Reward (training)")
-plt.title(f"Rolling Average Training Reward per Episode (NN vs ST, depth={depth_soft}, beta={beta_soft})")
+# plt.ylabel("Rolling Avg Reward (training)")
+# plt.title(f"Rolling Average Training Reward per Episode (NN vs ST, depth={depth_soft}, beta={beta_soft})")
+plt.ylabel("Rolling Avg Episode Return (training)")
+plt.title(f"Rolling Average Training Return per Episode (NN vs ST, depth={depth_soft}, beta={beta_soft})")
 plt.grid(True, alpha=0.3)
 plt.legend()
 plt.tight_layout()

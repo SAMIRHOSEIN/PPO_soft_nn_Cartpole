@@ -11,7 +11,18 @@ ELE_PPO_OUTPUT_DIM_CARTPOLE = 2  # push left or push right
 
 
 # env parameters
-ELE_PPO_HORIZON = 50 #64 #5 #75
+limit_for_cartpole_env = True
+if limit_for_cartpole_env:
+    """ horizon consider the max_episode_steps of cartpole env 
+    & for training horizon """
+    ELE_PPO_HORIZON = 15 #500 # Max=500 steps per episode in CartPole-v1 env
+
+elif not limit_for_cartpole_env:
+    """ horizon consider just for training horizon
+    & the max_episode_steps of cartpole env is default 500 """
+    ELE_PPO_HORIZON = 35
+
+
 
 # ELE_PPO_INC_STEP = True
 # ELE_PPO_MAX_COST = unit_costs.max()
@@ -24,7 +35,7 @@ ELE_PPO_HORIZON = 50 #64 #5 #75
 # ELE_PPO_RANDOM_STATE = 'off'
 
 
-actor_model = 'nn'  # 'st', 'nn' soft tree or neural network
+actor_model = 'st'  # 'st', 'nn' soft tree or neural network
 
 ELE_PPO_INPUT_DIM = ELE_PPO_INPUT_DIM_CARTPOLE
 ELE_PPO_OUTPUT_DIM = ELE_PPO_OUTPUT_DIM_CARTPOLE
@@ -91,7 +102,7 @@ ELE_PPO_LR_MIN = 1e-5    # lr reduced to lr_min with total_frames // frames_per_
     # You are calling step() even though this environment has already returned terminated=True…
 # The warning you saw comes from the evaluation loop stepping past done, not from training. if I don't like see
 # the warning I can set ELE_PPO_EVAL_FREQ to None. again, it doesn't affect training, just the evaluation frequency.
-# and evaluation in training is not important for us because we evaluate the each actor in ele_exp_actor.py
+# and evaluation in training is not important for us because we evaluate the each actor in ele_exp_actor.py and also plot the learning curve in Plt_LC_nn_st.py
 ELE_PPO_EVAL_FREQ = 1 # None or 1 : if I put it 1, I got warning because of big horizon value
 
 # In carpole doen't change this to stochastic becasue the we need to repreduce the intial state and compare the soft tree and nn
@@ -100,24 +111,19 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 
 
 # region: constants for ele_exp_actor.py ====================================
-# ELE_ACTOR_VERSION = '20251007-161613_nn' # This is nn with horizon=5
-# ELE_ACTOR_VERSION = '20251007-170244_st' # This is soft tree with horizon=5
-# ELE_ACTOR_VERSION = '20251007-172544_nn' #This is nn with horizon=20
-# ELE_ACTOR_VERSION = '20251007-180714_st' # This is soft tree with horizon=20
 
-# ELE_ACTOR_VERSION = '20251008-101241_nn' # This is nn with horizon=5 and for new cartpole with reset seed
-# ELE_ACTOR_VERSION = '20251008-104606_st' # This is soft tree with horizon=5 and for new cartpole with reset seed
-
-# After removing reset seed 
-# ELE_ACTOR_VERSION = '20251012-105715_nn' # This is nn with horizon=5, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-# ELE_ACTOR_VERSION = '20251012-112330_st' # This is soft tree with horizon=5, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-# ELE_ACTOR_VERSION = '20251012-114656_nn' # This is nn with horizon=10, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-# ELE_ACTOR_VERSION = '20251012-122056_st' # This is soft tree with horizon=10, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-ELE_ACTOR_VERSION = '20251012-143121_nn' # This is nn with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-# ELE_ACTOR_VERSION = '20251012-162058_st' # This is soft tree with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
+# Same horizon for env and training
+# ELE_ACTOR_VERSION = '20251019-075631_nn' # This is nn horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed 
+# ELE_ACTOR_VERSION = '20251019-081756_nn' # This is nn horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed 
+ELE_ACTOR_VERSION = '20251019-084320_nn' # This is nn horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251019-033737_nn' # This is nn horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed 
+# ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-104556_st' # This is st horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
 
 
-ELE_ACTOR_HORIZON = 50 #64 #5 #75
+
+
+ELE_ACTOR_HORIZON = 35 #64 #5 #75
 ELE_ACTOR_N_EPISODES = 200 
 
 
@@ -143,7 +149,27 @@ ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training
 
 
 # region: which actor model compared(leaning curve) for Plt_LC_nn_st.py ==================================
-ELE_ACTOR_VERSION_nn = '20251012-105715_nn' # This is nn with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-ELE_ACTOR_VERSION_st = '20251012-112330_st' # This is soft tree with horizon=50, and for new cartpole without reset seed and with 200 episodes for ele_exp_actor.py
-WINDOW = 50  # for rolling average - integer
+# ELE_ACTOR_VERSION_nn = '20251018-112806_nn'
+# ELE_ACTOR_VERSION_st = '20251018-120243_st'
+
+
+# ELE_ACTOR_VERSION_st = '20251018-141512_st' 
+# ELE_ACTOR_VERSION_nn = '20251018-144502_nn'
+
+
+# ELE_ACTOR_VERSION_nn = '20251018-201110_nn'  
+# ELE_ACTOR_VERSION_nn = '20251018-211254_nn'
+
+
+
+# ELE_ACTOR_VERSION_nn = '20251018-214301_nn'
+# ELE_ACTOR_VERSION_nn = '20251018-220402_nn'
+# ELE_ACTOR_VERSION_nn = '20251018-224408_nn'
+
+# ELE_ACTOR_VERSION_nn = '20251019-033737_nn'
+# ELE_ACTOR_VERSION_nn = '20251019-075631_nn'
+# ELE_ACTOR_VERSION_nn = '20251019-081756_nn'
+ELE_ACTOR_VERSION_nn = '20251019-084320_nn'
+
+WINDOW = 100 #50 100  # for rolling average - integer
 # endregion ==============================================================

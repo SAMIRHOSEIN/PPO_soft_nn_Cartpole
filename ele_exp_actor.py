@@ -57,7 +57,7 @@ if __name__ == "__main__":
     
     # ------------------------------------------------------------------------------
     horizon = test_constants_carpol.ELE_PPO_HORIZON
-    env = create_cartpole_env()
+    env = create_cartpole_env(max_episode_steps=horizon)
 
 
     # # deterministic initial state for this one episode / Seed once before the collector (for reproducible first reset)

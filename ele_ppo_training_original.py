@@ -21,17 +21,12 @@ from torchrl.data.replay_buffers import ReplayBuffer
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 from torchrl.data.replay_buffers.storages import LazyTensorStorage
 
-
-
 # training
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 from tqdm import tqdm
 from collections import defaultdict
 from torchrl.envs.utils import set_exploration_type
-
-
-
 
 
 if __name__ == "__main__":
@@ -56,42 +51,7 @@ if __name__ == "__main__":
     # eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
 
     horizon = test_constants_carpol.ELE_PPO_HORIZON
-    # horizon_for_horizon_and_evaluation = test_constants_carpol.horizon_for_horizon_and_evaluation
-
-
-
-
-
-
-
-
-
-
-    env = create_cartpole_env(max_episode_steps=horizon)
-    # env = create_cartpole_env(max_episode_steps=horizon_for_horizon_and_evaluation)
-    # train_env = create_cartpole_env(max_episode_steps=horizon)
-    # eval_env = create_cartpole_env(max_episode_steps=horizon)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    env = create_cartpole_env()
 
 
     # # Seed once before the collector (for reproducible first reset)
@@ -138,20 +98,6 @@ if __name__ == "__main__":
     actor_module = TensorDictModule(
         actor_net, in_keys=["observation"], out_keys=["logits"]
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     actor = ProbabilisticActor(
         module=actor_module,
         spec=env.action_spec,
@@ -160,42 +106,6 @@ if __name__ == "__main__":
         out_keys=["action"],  # Key where the sampled action will be written
         return_log_prob=True,
     )
-    # actor = ProbabilisticActor(
-    #     module=actor_module,
-    #     spec=train_env.action_spec,
-    #     distribution_class=CategoricalDist,
-    #     in_keys=["logits"],  # Key in the input tensor containing the observation
-    #     out_keys=["action"],  # Key where the sampled action will be written
-    #     return_log_prob=True,
-    # )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # # test for actor
     # observation = env.observation_spec.rand()['observation']
     # action_logits = actor_net(observation)
@@ -250,17 +160,6 @@ if __name__ == "__main__":
     frames_per_batch = test_constants_carpol.ELE_PPO_FRAMES_PER_BATCH
     total_frames = test_constants_carpol.ELE_PPO_TOTAL_FRAMES
 
-
-
-
-
-
-
-
-
-
-
-
     collector = SyncDataCollector(
         create_env_fn=lambda: env,
         policy=actor,
@@ -269,39 +168,6 @@ if __name__ == "__main__":
         split_trajs=False,
         device=device
     )
-
-    # collector = SyncDataCollector(
-    #     create_env_fn=lambda: create_cartpole_env(max_episode_steps=horizon),
-    #     policy=actor,
-    #     frames_per_batch=frames_per_batch,
-    #     total_frames=total_frames,
-    #     split_trajs=False,
-    #     device=device
-    # )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     replay_buffer = ReplayBuffer(
         storage=LazyTensorStorage(max_size=frames_per_batch),
@@ -358,39 +224,9 @@ if __name__ == "__main__":
                     optim.step()
                     optim.zero_grad()
 
-            # ---------------------------------------------------------------------------------
-            # original code
-            # logs["reward"].append(tensordict_data["next", "reward"].mean().item())
-
-            # my code to compute episode return from rewards and done flags
-            rewards = tensordict_data["next", "reward"].detach().cpu().view(-1)
-            terminated = tensordict_data["next", "terminated"].detach().cpu().view(-1)
-            truncated = tensordict_data["next", "truncated"].detach().cpu().view(-1)
-            done_mask = (terminated | truncated).to(torch.bool) #For each step t, treat an episode as “done” if either flag fires(terminal or time-limit end).
-
-            episode_returns = []
-            running_return = 0.0
-            for reward, done in zip(rewards.tolist(), done_mask.tolist()):
-                running_return += reward
-                if done:
-                    episode_returns.append(running_return)
-                    running_return = 0.0
-
-            if not episode_returns and running_return: # if episode_returns is empty and running_return > 0
-                # If the batch ends mid-episode, keep the partial return.
-                episode_returns.append(running_return)
-
-            if episode_returns:
-                train_return_mean = float(np.mean(episode_returns))
-            else:
-                train_return_mean = 0.0
-
-            
-            logs["train return (mean)"].append(train_return_mean)
-            # Backwards-compatible keys expected by plotting utilities.
-            logs["reward"].append(train_return_mean)        
+            logs["reward"].append(tensordict_data["next", "reward"].mean().item())
             logs["lr"].append(optim.param_groups[0]["lr"])
-            # ---------------------------------------------------------------------------------
+
 
             #--------------------------------------------------------------------------
             # I modified the following line to avoid evaluation if eval_freq is None, because I got warning 
@@ -413,86 +249,21 @@ if __name__ == "__main__":
                     # -------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     # execute a rollout with the trained policy
-                    # eval_rollout = env.rollout(horizon_for_horizon_and_evaluation, actor)
                     eval_rollout = env.rollout(horizon, actor)
-                    # eval_rollout = eval_env.rollout(horizon, actor)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    # -----------------------------------------------------------------------------
-                    # original code
-                    # logs["eval reward"].append(eval_rollout["next", "reward"].mean().item())
-                    # logs["eval reward (sum)"].append(
-                    #     eval_rollout["next", "reward"].sum().item()
-                    # )
-
-                    # my code to compute episode return from rewards and done flags
-                    eval_rewards = eval_rollout["next", "reward"].detach().cpu().view(-1)
-                    eval_terminated = eval_rollout["next", "terminated"].detach().cpu().view(-1)
-                    eval_truncated = eval_rollout["next", "truncated"].detach().cpu().view(-1)
-                    eval_done_mask = (eval_terminated | eval_truncated).to(torch.bool)  # For each step t, treat an episode as “done” if either flag fires (terminal or time-limit end).
-
-                    eval_episode_returns = []
-                    running_eval_return = 0.0
-                    for reward, done in zip(eval_rewards.tolist(), eval_done_mask.tolist()):
-                        running_eval_return += reward
-                        if done:
-                            eval_episode_returns.append(running_eval_return)
-                            running_eval_return = 0.0
-
-                    if not eval_episode_returns and running_eval_return:
-                        eval_episode_returns.append(running_eval_return)
-
-                    eval_return_sum = float(np.sum(eval_episode_returns)) if eval_episode_returns else 0.0
-                    logs["eval return (sum)"].append(eval_return_sum)
-
-
+                    logs["eval reward"].append(eval_rollout["next", "reward"].mean().item())
+                    logs["eval reward (sum)"].append(
+                        eval_rollout["next", "reward"].sum().item()
+                    )
                     eval_str = (
-                        # f"eval cumulative reward: {logs['eval reward (sum)'][-1]: .4e} "
-                        # f"(init: {logs['eval reward (sum)'][0]: .4e})"
-                        f"eval cumulative reward: {logs['eval return (sum)'][-1]: .4e} "
-                        f"(init: {logs['eval return (sum)'][0]: .4e})"                        
+                        f"eval cumulative reward: {logs['eval reward (sum)'][-1]: .4e} "
+                        f"(init: {logs['eval reward (sum)'][0]: .4e})"
                     )
                     del eval_rollout
 
             pbar.update(tensordict_data.numel())
             cum_reward_str = (
-                # f"average reward={logs['reward'][-1]:.4e} (init={logs['reward'][0]: .4e})"
-                f"avg episode return={logs['train return (mean)'][-1]:.4e} "
-                f"(init={logs['train return (mean)'][0]: .4e})"                
+                f"average reward={logs['reward'][-1]:.4e} (init={logs['reward'][0]: .4e})"
             )
             lr_str = f"lr policy: {logs['lr'][-1]: .4e}"
             pbar.set_description(", ".join([eval_str, cum_reward_str, lr_str]))
@@ -528,8 +299,7 @@ if __name__ == "__main__":
             input_dim=input_dim, output_dim=output_dim,
             actor_cells=actor_cells,
             actor_layers=actor_layers,
-            horizon=horizon,
-        )
+            horizon=horizon,         )
     elif actor_model == 'st':
         np.savez(
             os.path.join(save_path, "actor_net_init_params.npz"),
