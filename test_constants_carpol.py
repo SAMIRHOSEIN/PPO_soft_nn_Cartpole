@@ -10,17 +10,17 @@ ELE_PPO_INPUT_DIM_CARTPOLE = 4   # cart position, cart velocity, pole angle, pol
 ELE_PPO_OUTPUT_DIM_CARTPOLE = 2  # push left or push right
 
 
-# env parameters
-limit_for_cartpole_env = True
+# horizon for env and training
+limit_for_cartpole_env = False
 if limit_for_cartpole_env:
     """ horizon consider the max_episode_steps of cartpole env 
     & for training horizon """
-    ELE_PPO_HORIZON = 15 #500 # Max=500 steps per episode in CartPole-v1 env
+    ELE_PPO_HORIZON = 35 #500 # Max=500 steps per episode in CartPole-v1 env
 
 elif not limit_for_cartpole_env:
     """ horizon consider just for training horizon
     & the max_episode_steps of cartpole env is default 500 """
-    ELE_PPO_HORIZON = 35
+    ELE_PPO_HORIZON = 30
 
 
 
@@ -115,10 +115,12 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # Same horizon for env and training
 # ELE_ACTOR_VERSION = '20251019-075631_nn' # This is nn horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed 
 # ELE_ACTOR_VERSION = '20251019-081756_nn' # This is nn horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed 
-ELE_ACTOR_VERSION = '20251019-084320_nn' # This is nn horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251019-084320_nn' # This is nn horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
 # ELE_ACTOR_VERSION = '20251019-033737_nn' # This is nn horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed 
 # ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
 # ELE_ACTOR_VERSION_st = '20251019-104556_st' # This is st horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-150711_st' # This is st horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-155201_st' # This is st horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
 
 
 
@@ -149,27 +151,21 @@ ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training
 
 
 # region: which actor model compared(leaning curve) for Plt_LC_nn_st.py ==================================
-# ELE_ACTOR_VERSION_nn = '20251018-112806_nn'
-# ELE_ACTOR_VERSION_st = '20251018-120243_st'
+# for horizon = 5
+ELE_ACTOR_VERSION_nn = '20251019-075631_nn' # This is nn horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
+ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
 
+# # for horizon = 10
+# ELE_ACTOR_VERSION_nn = '20251019-081756_nn' # This is nn horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-150711_st' # This is st
 
-# ELE_ACTOR_VERSION_st = '20251018-141512_st' 
-# ELE_ACTOR_VERSION_nn = '20251018-144502_nn'
+# # for horizon = 35
+# ELE_ACTOR_VERSION_nn = '20251019-084320_nn' # This is nn horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-155201_st' # This is st horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
 
-
-# ELE_ACTOR_VERSION_nn = '20251018-201110_nn'  
-# ELE_ACTOR_VERSION_nn = '20251018-211254_nn'
-
-
-
-# ELE_ACTOR_VERSION_nn = '20251018-214301_nn'
-# ELE_ACTOR_VERSION_nn = '20251018-220402_nn'
-# ELE_ACTOR_VERSION_nn = '20251018-224408_nn'
-
-# ELE_ACTOR_VERSION_nn = '20251019-033737_nn'
-# ELE_ACTOR_VERSION_nn = '20251019-075631_nn'
-# ELE_ACTOR_VERSION_nn = '20251019-081756_nn'
-ELE_ACTOR_VERSION_nn = '20251019-084320_nn'
+# # for horizon = 75
+# ELE_ACTOR_VERSION_nn = '20251019-033737_nn' # This is nn horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-104556_st' # This is st horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
 
 WINDOW = 100 #50 100  # for rolling average - integer
 # endregion ==============================================================

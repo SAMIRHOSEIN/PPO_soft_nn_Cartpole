@@ -265,6 +265,17 @@ elif actor_model == 'st':
     print(f"input_dim= {input_dim}, output_dim= {output_dim}, horizon= {horizon}, depth= {depth_soft}, beta= {beta_soft}, batchnorm= {batchnorm_soft}\n")
 
 # %%
+
+
+
+
+
+
+
+
+
+
+
 # action distribution summary
 all_actions = np.concatenate(logs["action"])
 id2name = {0: "Push Left", 1: "Push Right"}  

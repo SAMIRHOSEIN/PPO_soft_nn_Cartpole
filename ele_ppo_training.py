@@ -8,7 +8,6 @@ import pickle
 # environment
 from torchrl_bridge import create_cartpole_env
 
-
 # actor and critic networks
 from torchrl_bridge import ElementActorNet, ElementActorSoftTree, ValueNet
 from torchrl.modules import ProbabilisticActor, ValueOperator
@@ -22,16 +21,12 @@ from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 from torchrl.data.replay_buffers.storages import LazyTensorStorage
 
 
-
 # training
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 from tqdm import tqdm
 from collections import defaultdict
 from torchrl.envs.utils import set_exploration_type
-
-
-
 
 
 if __name__ == "__main__":
@@ -54,45 +49,16 @@ if __name__ == "__main__":
 
     # ------------------------------------------------------------------------------
     # eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
-
     horizon = test_constants_carpol.ELE_PPO_HORIZON
-    # horizon_for_horizon_and_evaluation = test_constants_carpol.horizon_for_horizon_and_evaluation
 
+    limit_for_cartpole_env = test_constants_carpol.limit_for_cartpole_env
 
-
-
-
-
-
-
-
-
-    env = create_cartpole_env(max_episode_steps=horizon)
-    # env = create_cartpole_env(max_episode_steps=horizon_for_horizon_and_evaluation)
-    # train_env = create_cartpole_env(max_episode_steps=horizon)
-    # eval_env = create_cartpole_env(max_episode_steps=horizon)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    if limit_for_cartpole_env:
+        # create cartpole env function with horizon argument
+        env = create_cartpole_env(max_episode_steps=horizon)    
+    elif not limit_for_cartpole_env:
+        # create cartpole env function without horizon argument
+        env = create_cartpole_env()
 
     # # Seed once before the collector (for reproducible first reset)
     # random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
@@ -139,19 +105,6 @@ if __name__ == "__main__":
         actor_net, in_keys=["observation"], out_keys=["logits"]
     )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     actor = ProbabilisticActor(
         module=actor_module,
         spec=env.action_spec,
@@ -160,40 +113,6 @@ if __name__ == "__main__":
         out_keys=["action"],  # Key where the sampled action will be written
         return_log_prob=True,
     )
-    # actor = ProbabilisticActor(
-    #     module=actor_module,
-    #     spec=train_env.action_spec,
-    #     distribution_class=CategoricalDist,
-    #     in_keys=["logits"],  # Key in the input tensor containing the observation
-    #     out_keys=["action"],  # Key where the sampled action will be written
-    #     return_log_prob=True,
-    # )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     # # test for actor
@@ -252,15 +171,6 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
-
     collector = SyncDataCollector(
         create_env_fn=lambda: env,
         policy=actor,
@@ -269,37 +179,6 @@ if __name__ == "__main__":
         split_trajs=False,
         device=device
     )
-
-    # collector = SyncDataCollector(
-    #     create_env_fn=lambda: create_cartpole_env(max_episode_steps=horizon),
-    #     policy=actor,
-    #     frames_per_batch=frames_per_batch,
-    #     total_frames=total_frames,
-    #     split_trajs=False,
-    #     device=device
-    # )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -413,43 +292,8 @@ if __name__ == "__main__":
                     # -------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     # execute a rollout with the trained policy
-                    # eval_rollout = env.rollout(horizon_for_horizon_and_evaluation, actor)
                     eval_rollout = env.rollout(horizon, actor)
-                    # eval_rollout = eval_env.rollout(horizon, actor)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                     # -----------------------------------------------------------------------------
