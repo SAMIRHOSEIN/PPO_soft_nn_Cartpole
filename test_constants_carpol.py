@@ -152,8 +152,8 @@ ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training
 
 # region: which actor model compared(leaning curve) for Plt_LC_nn_st.py ==================================
 # for horizon = 5
-ELE_ACTOR_VERSION_nn = '20251019-075631_nn' # This is nn horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
-ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_nn = '20251019-075631_nn' # This is nn horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
 
 # # for horizon = 10
 # ELE_ACTOR_VERSION_nn = '20251019-081756_nn' # This is nn horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed
@@ -166,6 +166,11 @@ ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and
 # # for horizon = 75
 # ELE_ACTOR_VERSION_nn = '20251019-033737_nn' # This is nn horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
 # ELE_ACTOR_VERSION_st = '20251019-104556_st' # This is st horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
+
+
+# for deafult horizon
+ELE_ACTOR_VERSION_nn = '20251020-130620_nn' # This is nn for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed
+ELE_ACTOR_VERSION_st = '20251020-141936_st' # This is st for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed
 
 WINDOW = 100 #50 100  # for rolling average - integer
 # endregion ==============================================================
