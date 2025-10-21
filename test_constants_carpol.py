@@ -23,18 +23,6 @@ elif not limit_for_cartpole_env:
     ELE_PPO_HORIZON = 30
 
 
-
-# ELE_PPO_INC_STEP = True
-# ELE_PPO_MAX_COST = unit_costs.max()
-
-# ELE_PPO_RESET_PROB = None
-# ELE_PPO_DIRICHLET_ALPHA = 0.5*np.ones(NCS)
-# ELE_PPO_RANDOM_STATE = 42
-# ELE_PPO_RESET_PROB = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
-# ELE_PPO_DIRICHLET_ALPHA = None
-# ELE_PPO_RANDOM_STATE = 'off'
-
-
 actor_model = 'st'  # 'st', 'nn' soft tree or neural network
 
 ELE_PPO_INPUT_DIM = ELE_PPO_INPUT_DIM_CARTPOLE
@@ -42,10 +30,7 @@ ELE_PPO_OUTPUT_DIM = ELE_PPO_OUTPUT_DIM_CARTPOLE
 
 # network parameters
 ELE_PPO_TORCH_SEED = 0
-# if ELE_PPO_INC_STEP:
-#     ELE_PPO_INPUT_DIM = NCS + 1
-# else:
-#     ELE_PPO_INPUT_DIM = NCS
+
 
 if actor_model == 'nn':
     ELE_PPO_ACTOR_CELLS = 32
@@ -147,7 +132,6 @@ ELE_ACTOR_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determinis
 # seeds for reproducible resets in Cartpole env
 ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE = 1234 # seed once before the collector starts. It makes the very first reset deterministic so runs are reproducible.
 ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training and evaluation for both ele_ppo_training.py and ele_exp_actor.py
-
 
 
 # region: which actor model compared(leaning curve) for Plt_LC_nn_st.py ==================================
