@@ -25,6 +25,13 @@ elif not limit_for_cartpole_env:
 
 actor_model = 'st'  # 'st', 'nn' soft tree or neural network
 
+
+# soft tree parameters
+depth_soft = 8 #8 #5
+beta_soft = 1.0
+batchnorm_soft = False
+
+
 ELE_PPO_INPUT_DIM = ELE_PPO_INPUT_DIM_CARTPOLE
 ELE_PPO_OUTPUT_DIM = ELE_PPO_OUTPUT_DIM_CARTPOLE
 
@@ -41,11 +48,6 @@ ELE_PPO_VALUE_LAYERS = 2
 
 # ELE_PPO_OUTPUT_DIM = NA
 
-
-# soft tree parameters
-depth_soft = 8 #5
-beta_soft = 1.0
-batchnorm_soft = False
 
 
 # GAE parameters
@@ -64,7 +66,25 @@ ELE_PPO_CRITIC_COEF = 1.0
 
 # collector parameters
 ELE_PPO_EPISODES_PER_BATCH = 32     # how many episodes we collect per iteration 
-ELE_PPO_NUM_ITERATIONS = 1024       # how many iteration: collect→optimize cycles we run in total
+
+
+
+
+
+
+
+
+
+ELE_PPO_NUM_ITERATIONS = 1500 #1024       # how many iteration: collect→optimize cycles we run in total
+
+
+
+
+
+
+
+
+
 ELE_PPO_FRAMES_PER_BATCH = ELE_PPO_HORIZON*ELE_PPO_EPISODES_PER_BATCH
 ELE_PPO_TOTAL_FRAMES = ELE_PPO_FRAMES_PER_BATCH*ELE_PPO_NUM_ITERATIONS
 ELE_PPO_SPLIT_TRAJS = False
@@ -102,12 +122,17 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # ELE_ACTOR_VERSION = '20251019-081756_nn' # This is nn horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed 
 # ELE_ACTOR_VERSION = '20251019-084320_nn' # This is nn horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
 # ELE_ACTOR_VERSION = '20251019-033737_nn' # This is nn horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed 
-# ELE_ACTOR_VERSION_st = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
-# ELE_ACTOR_VERSION_st = '20251019-104556_st' # This is st horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
-# ELE_ACTOR_VERSION_st = '20251019-150711_st' # This is st horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed
-# ELE_ACTOR_VERSION_st = '20251019-155201_st' # This is st horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
-
-
+# ELE_ACTOR_VERSION = '20251019-102104_st' # This is st horizon = 5 for env and horizen = 5 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251019-104556_st' # This is st horizon = 75 for env and horizen = 75 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251019-150711_st' # This is st horizon = 10 for env and horizen = 10 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251019-155201_st' # This is st horizon = 35 for env and horizen = 35 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251020-130620_nn' # This is nn for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251020-141936_st' # This is st for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION = '20251024-083802_st' # This is st with d=9 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed, depth = 9
+# ELE_ACTOR_VERSION = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION = '20251024-101530_st' # This is st with d=9 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION = '20251024-172647_st' # This is st with d=8 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
 
 
 ELE_ACTOR_HORIZON = 35 #64 #5 #75
@@ -153,8 +178,26 @@ ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training
 
 
 # for deafult horizon
-ELE_ACTOR_VERSION_nn = '20251020-130620_nn' # This is nn for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed
-ELE_ACTOR_VERSION_st = '20251020-141936_st' # This is st for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_nn = '20251020-130620_nn' # This is nn for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed
+# ELE_ACTOR_VERSION_st = '20251020-141936_st' # This is st for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed
+
+
+# for deafult horizon but soft tree has depth = 9
+# ELE_ACTOR_VERSION_nn = '20251020-130620_nn' # This is nn for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed, depth = 9
+# ELE_ACTOR_VERSION_st = '20251024-083802_st' # This is st with d=9 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed, depth = 9
+
+
+# for deafult horizon but soft tree has depth = 9 and ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION_nn = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION_st = '20251024-101530_st' # This is st with d=9 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+
+
+# for deafult horizon but soft tree has depth = 8 and ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION_nn = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION_st = '20251024-172647_st' # This is st with d=8 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+
+
+
 
 WINDOW = 100 #50 100  # for rolling average - integer
 # endregion ==============================================================

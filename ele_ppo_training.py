@@ -90,6 +90,8 @@ if __name__ == "__main__":
         depth_soft = test_constants_carpol.depth_soft
         beta_soft = test_constants_carpol.beta_soft
         batchnorm_soft = test_constants_carpol.batchnorm_soft
+        print(f"depth_soft: {depth_soft}")
+        print(f"beta_soft: {beta_soft}")
 
         # Soft Tree
         actor_net = ElementActorSoftTree(
