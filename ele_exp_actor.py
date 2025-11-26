@@ -18,9 +18,7 @@ from collections import defaultdict
 from torchrl.envs.utils import ExplorationType, set_exploration_type
 import pickle
 
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from matplotlib.patches import Patch
+
 
 if __name__ == "__main__":
     import importlib
@@ -28,7 +26,7 @@ if __name__ == "__main__":
     importlib.reload(test_constants_carpol)
     
     # load constants
-    horizon = test_constants_carpol.ELE_ACTOR_HORIZON
+    horizon = test_constants_carpol.ELE_PPO_HORIZON_eval
     n_episodes = test_constants_carpol.ELE_ACTOR_N_EPISODES 
     explore_type = test_constants_carpol.ELE_ACTOR_EXPLORE_TYPE
     actor_model = test_constants_carpol.actor_model
@@ -41,8 +39,13 @@ if __name__ == "__main__":
     batchnorm_soft = test_constants_carpol.batchnorm_soft
 
     actor_version = test_constants_carpol.ELE_ACTOR_VERSION
-    state_dict_path = os.path.join('./assets', f"{actor_version}", "actor_net_state_dict.pt")
-    init_params_path = os.path.join('./assets', f"{actor_version}", "actor_net_init_params.npz")
+    if actor_model == 'nn':
+        state_dict_path = os.path.join('./assets', f"{actor_version}", "actor_net_state_dict.pt")
+        init_params_path = os.path.join('./assets', f"{actor_version}", "actor_net_init_params.npz")
+        
+    elif actor_model == 'st' or actor_model == 'ft':
+        state_dict_path = os.path.join('./assets', f"{actor_version}", "actor_soft_state_dict.pt")
+        init_params_path = os.path.join('./assets', f"{actor_version}", "actor_soft_init_params.npz")
 
     init_params = np.load(init_params_path)
     input_dim = init_params['input_dim'].item()
@@ -55,9 +58,20 @@ if __name__ == "__main__":
         f"Actor was not trained for horizon={horizon} (training horizon={init_params['horizon'].item()})"
 
     
+
     # ------------------------------------------------------------------------------
-    horizon = test_constants_carpol.ELE_PPO_HORIZON
-    env = create_cartpole_env(max_episode_steps=horizon)
+    # recreate environment
+    limit_for_cartpole_env_eval = test_constants_carpol.limit_for_cartpole_env_eval
+
+    if limit_for_cartpole_env_eval:
+        # env and evaluation limited to train_horizon
+        env = create_cartpole_env(max_episode_steps=horizon)    
+        eval_horizon = horizon
+
+    elif not limit_for_cartpole_env_eval:
+        # default CartPole (500 steps max)
+        env = create_cartpole_env()
+        eval_horizon = 500                  # evaluate over the full CartPole horizon        
 
 
     # # deterministic initial state for this one episode / Seed once before the collector (for reproducible first reset)
@@ -66,36 +80,77 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------------------
 
 
-
     # restore actor
+    # ============================================================
+    # Path A: Restore NN actor for evaluation
+    # ============================================================
     if actor_model == 'nn':
+        print(f"actor_model: {actor_model}")
+
+        # restore actor
         actor_net = ElementActorNet(input_dim, output_dim, actor_cells, actor_layers)
 
+        actor_net.load_state_dict(
+            torch.load(state_dict_path, weights_only=True)
+        )
+        actor_net.eval()    # set the model to evaluation mode
+
+        # create policy
+        actor_module = TensorDictModule(
+            actor_net, in_keys=["observation"], out_keys=["logits"]
+        )
+
+
+        # create policy based on actor_module : NN
+        actor = ProbabilisticActor(
+            module=actor_module,
+            spec=env.action_spec,
+            distribution_class=CategoricalDist,
+            in_keys=["logits"],  # Key in the input tensor containing the observation
+            out_keys=["action"],  # Key where the sampled action will be written
+            return_log_prob=True,
+        )    
+
+    # ============================================================
+    # Path B: Restore SOFT actor for evaluation
+    # ============================================================
     elif actor_model == 'st':
-        actor_net = ElementActorSoftTree(
+        print(f"actor_model: {actor_model}")
+
+        # soft tree parameters
+        depth_soft = test_constants_carpol.depth_soft
+        beta_soft = test_constants_carpol.beta_soft
+        batchnorm_soft = test_constants_carpol.batchnorm_soft
+
+        print(f"depth_soft: {depth_soft}")
+        print(f"beta_soft: {beta_soft}")
+
+
+        # restore soft actor
+        actor_soft = ElementActorSoftTree(
             input_dim, output_dim,
             depth=depth_soft, beta=beta_soft, apply_batchNorm=batchnorm_soft
-    )
-        
-    print(f"actor_model: {actor_model}")
+            )
 
-    actor_net.load_state_dict(
-        torch.load(state_dict_path, weights_only=True)
-    )
-    actor_net.eval()    # set the model to evaluation mode
+        actor_soft.load_state_dict(
+            torch.load(state_dict_path, weights_only=True)
+        )
+        actor_soft.eval()    # set the model to evaluation mode
 
-    # create policy
-    actor_module = TensorDictModule(
-        actor_net, in_keys=["observation"], out_keys=["logits"]
-    )
-    actor = ProbabilisticActor(
-        module=actor_module,
-        spec=env.action_spec,
-        distribution_class=CategoricalDist,
-        in_keys=["logits"],  # Key in the input tensor containing the observation
-        out_keys=["action"],  # Key where the sampled action will be written
-        return_log_prob=True,
-    )
+        # create policy
+        actor_module = TensorDictModule(
+            actor_soft, in_keys=["observation"], out_keys=["log_probs"] # soft tree outputs log_probs
+        )
+
+        actor = ProbabilisticActor(
+            module=actor_module,
+            spec=env.action_spec,
+            distribution_class=CategoricalDist,
+            in_keys={"logits": "log_probs"},  # cause torch.distributions.Categorical does not have a log_probs= argument - I need to match with out_keys of actor_module
+            out_keys=["action"],  # Key where the sampled action will be written
+            return_log_prob=True,
+        )    
+
 
     # gather experience
     logs = defaultdict(list)
@@ -106,125 +161,82 @@ if __name__ == "__main__":
 
 
 
+    # -----------------------------------------------------------------------------------------------------------------
+    # original code:
+    # we don’t use terminated / truncated at all in originl code
+    # we sum the entire reward tensor from eval_rollout["next", "reward"], which may include:
+    # steps after the environment is done (if rollout continues),
+    # or even parts of a new episode if the env auto-resets inside rollout.
+    # So this file does not yet enforce “episode return = sum of rewards up to terminated | truncated” the way I did in ele_ppo_training.py.
+
+    # with tqdm(total=horizon * n_episodes) as pbar:
+    #     with set_exploration_type(explore_type), torch.no_grad():
+    #         for _ in range(n_episodes):
+    #             # execute a rollout with the trained policy
+    #             eval_rollout = env.rollout(horizon, actor)
+
+    #             logs["observation"].append(eval_rollout["observation"].cpu().numpy())
+    #             logs["action"].append(eval_rollout["action"].cpu().numpy())
+    #             logs["reward"].append(eval_rollout["next", "reward"].cpu().numpy())
+    #             logs["ep reward"].append(eval_rollout["next", "reward"].sum().item())
+
+    #             eval_str = (
+    #                 f"ep reward: {logs['ep reward'][-1]: 4.4f} "
+    #                 f"(init: {logs['ep reward'][0]: 4.4f}), "
+    #             )
+    #             pbar.update(eval_rollout.numel())
+    #             pbar.set_description(eval_str)
+
+    #             del eval_rollout
 
 
-
-
-
-
-
-    with tqdm(total=horizon * n_episodes) as pbar:
+    # The my code below enforces “episode return = sum of rewards up to terminated | truncated”
+    with tqdm(total=eval_horizon  * n_episodes) as pbar: # This line is just for progress bar not affect the evaluation
         with set_exploration_type(explore_type), torch.no_grad():
             for _ in range(n_episodes):
                 # execute a rollout with the trained policy
-                eval_rollout = env.rollout(horizon, actor)
+                eval_rollout = env.rollout(eval_horizon, actor) # execute a rollout with trained policy - may continue after done, so we’ll mask
 
-                logs["observation"].append(eval_rollout["observation"].cpu().numpy())
-                logs["action"].append(eval_rollout["action"].cpu().numpy())
-                logs["reward"].append(eval_rollout["next", "reward"].cpu().numpy())
-                logs["ep reward"].append(eval_rollout["next", "reward"].sum().item())
+                # Move tensors to CPU and flatten the time dimension
+                obs = eval_rollout["observation"].cpu()
+                act = eval_rollout["action"].cpu()
+                rew = eval_rollout["next", "reward"].squeeze(-1).cpu() # squeeze to remove last dim
+
+                terminated = eval_rollout["next", "terminated"].squeeze(-1).cpu()
+                truncated  = eval_rollout["next", "truncated"].squeeze(-1).cpu()
+                done_mask  = (terminated | truncated)
+
+                # Episode length = up to first done, or full horizon if no done
+                if done_mask.any():
+                    t_end = int(done_mask.nonzero(as_tuple=True)[0][0].item()) + 1 # +1 to include the done step
+                else:
+                    t_end = rew.shape[0]
+
+                # Store only the actual episode segment
+                logs["observation"].append(obs[:t_end].numpy())
+                logs["action"].append(act[:t_end].numpy())
+                logs["reward"].append(rew[:t_end].numpy())
+
+                ep_reward = float(rew[:t_end].sum().item()) # sum of rewards up to terminated | truncated = done
+                logs["ep reward"].append(ep_reward)
 
                 eval_str = (
                     f"ep reward: {logs['ep reward'][-1]: 4.4f} "
                     f"(init: {logs['ep reward'][0]: 4.4f}), "
                 )
-                pbar.update(eval_rollout.numel())
+                pbar.update(t_end) # moves the bar after each episode by the number of completed steps.
                 pbar.set_description(eval_str)
 
                 del eval_rollout
+
+    # -----------------------------------------------------------------------------------------------------------------
+
 
     print(f"Average reward: {np.mean(logs['ep reward'])}")
     print(f"Initial state: {logs['observation'][0][0]}")
     print(f"Final state: {logs['observation'][0][-1]}")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # EVAL_H = 500
-    # with tqdm(total=EVAL_H * n_episodes) as pbar:
-    #     with set_exploration_type(explore_type), torch.no_grad():
-    #         for _ in range(n_episodes):
-    #             # (optional but explicit) reset before each episode
-    #             _ = env.reset()
-
-    #             # run up to EVAL_H steps
-    #             eval_rollout = env.rollout(EVAL_H, actor)  # may continue after done, so we’ll mask
-
-    #             # ---- mask rewards after first 'done' ----
-    #             r = eval_rollout["next", "reward"].squeeze(-1).cpu().numpy()  # shape [T]
-    #             try:
-    #                 done = eval_rollout["next", "done"].squeeze(-1).cpu().numpy()  # shape [T], bool
-    #                 t_end = np.argmax(done) + 1 if done.any() else len(r)
-    #             except KeyError:
-    #                 # if your tensordict doesn't carry 'done', fall back to full length
-    #                 t_end = len(r)
-
-    #             ep_reward = float(r[:t_end].sum())
-
-    #             logs["observation"].append(eval_rollout["observation"].cpu().numpy())
-    #             logs["action"].append(eval_rollout["action"].cpu().numpy())
-    #             logs["reward"].append(eval_rollout["next", "reward"].cpu().numpy())
-    #             logs["ep reward"].append(ep_reward)
-
-    #             eval_str = f"ep reward: {ep_reward:6.1f} (init: {logs['ep reward'][0]:6.1f})"
-    #             pbar.update(len(r))
-    #             pbar.set_description(eval_str)
-    #             del eval_rollout
-
-    # print(f"Average reward: {np.mean(logs['ep reward']):.1f}")
-    # print(f"Initial state: {logs['observation'][0][0]}")
-    # print(f"Final state:   {logs['observation'][0][-1]}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     # save experience
     experience_path = os.path.join('./assets', f"{actor_version}", "experience.pkl")
     with open(experience_path, "wb") as f:

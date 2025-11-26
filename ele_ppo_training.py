@@ -46,6 +46,7 @@ if __name__ == "__main__":
     # include_step_count = test_constants_carpol.ELE_PPO_INC_STEP
     # random_state = test_constants_carpol.ELE_PPO_RANDOM_STATE
     actor_model = test_constants_carpol.actor_model 
+    
 
     # ------------------------------------------------------------------------------
     # eval_seed = test_constants_carpol.ELE_TRAINING_ACTOR_RESET_SEED
@@ -56,9 +57,16 @@ if __name__ == "__main__":
     if limit_for_cartpole_env:
         # create cartpole env function with horizon argument
         env = create_cartpole_env(max_episode_steps=horizon)    
+        # - If we limit the CartPole env, evaluate for `horizon` steps.
+        eval_horizon = horizon
+
     elif not limit_for_cartpole_env:
         # create cartpole env function without horizon argument
         env = create_cartpole_env()
+        # - Otherwise, use the default full CartPole horizon (500 steps).
+        eval_horizon = 500  # CartPole-v1 default max_episode_steps
+
+
 
     # # Seed once before the collector (for reproducible first reset)
     # random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
@@ -78,43 +86,58 @@ if __name__ == "__main__":
         actor_cells = test_constants_carpol.ELE_PPO_ACTOR_CELLS
         actor_layers = test_constants_carpol.ELE_PPO_ACTOR_LAYERS
 
-        
         # Neural Networks 
         actor_net = ElementActorNet(
             input_dim, output_dim, actor_cells, actor_layers,
             device=device
         )
 
+        actor_module = TensorDictModule(
+            actor_net, in_keys=["observation"], out_keys=["logits"]
+        )  
+
+        actor = ProbabilisticActor(
+            module=actor_module,
+            spec=env.action_spec,
+            distribution_class=CategoricalDist,
+            in_keys=["logits"],  # Key in the input tensor containing the observation
+            out_keys=["action"],  # Key where the sampled action will be written
+            return_log_prob=True,
+        )
+
+
+
     elif actor_model == 'st':
         # soft tree parameters
         depth_soft = test_constants_carpol.depth_soft
         beta_soft = test_constants_carpol.beta_soft
         batchnorm_soft = test_constants_carpol.batchnorm_soft
+
+
+            
+            
         print(f"depth_soft: {depth_soft}")
         print(f"beta_soft: {beta_soft}")
 
         # Soft Tree
-        actor_net = ElementActorSoftTree(
+        actor_soft = ElementActorSoftTree(
             input_dim, output_dim,
             depth=depth_soft, beta=beta_soft, apply_batchNorm=batchnorm_soft,
             device=device
         )
 
-
-    print(f"actor_model: {actor_model}")
-
-    actor_module = TensorDictModule(
-        actor_net, in_keys=["observation"], out_keys=["logits"]
-    )
-
-    actor = ProbabilisticActor(
-        module=actor_module,
-        spec=env.action_spec,
-        distribution_class=CategoricalDist,
-        in_keys=["logits"],  # Key in the input tensor containing the observation
-        out_keys=["action"],  # Key where the sampled action will be written
-        return_log_prob=True,
-    )
+        actor_module = TensorDictModule(
+            actor_soft, in_keys=["observation"], out_keys=["log_probs"] # to avoid confusion with logits from nn cause soft tree outputs log_probs
+        )      
+        
+        actor = ProbabilisticActor(
+            module=actor_module,
+            spec=env.action_spec,
+            distribution_class=CategoricalDist,
+            in_keys={"logits": "log_probs"},  # dist kw 'logits' <- TD key 'log_probs'(cause torch.distributions.Categorical does not have a log_probs= argument) - Key in the input tensor containing the observation - I need to match with out_keys of actor_module
+            out_keys=["action"],  # Key where the sampled action will be written
+            return_log_prob=True,
+        )    
 
 
     # # test for actor
@@ -208,7 +231,7 @@ if __name__ == "__main__":
     logs = defaultdict(list)
     eval_str = ""
 
-    with tqdm(total=total_frames) as pbar:
+    with tqdm(total=total_frames) as pbar: # This line is just for the progress bar, but total_frames is used in collector for training above. 
         # We iterate over the collector until it reaches the total number of frames it was
         # designed to collect:
         for i, tensordict_data in enumerate(collector):
@@ -252,10 +275,10 @@ if __name__ == "__main__":
             episode_returns = []
             running_return = 0.0
             for reward, done in zip(rewards.tolist(), done_mask.tolist()):
-                running_return += reward
+                running_return += reward # Accumulates reward into running_return
                 if done:
                     episode_returns.append(running_return)
-                    running_return = 0.0
+                    running_return = 0.0  # equivalent to reset env and start a new episode in return accounting
 
             if not episode_returns and running_return: # if episode_returns is empty and running_return > 0
                 # If the batch ends mid-episode, keep the partial return.
@@ -275,7 +298,13 @@ if __name__ == "__main__":
 
             #--------------------------------------------------------------------------
             # I modified the following line to avoid evaluation if eval_freq is None, because I got warning 
-            # when I conisider the big horizon value
+            # when I conisider the big horizon value(e.g., CartPole falls at step 10)
+            # what was the reason and how can I fix it:
+                # Answ: # In evaluation part of code we have env.rollout(horizon, actor), and this always tries to run exactly horizon steps, 
+                        # even if the environment has already terminated early. Cause I ask for horizon steps in env.rollout(horizon, actor),
+                        # I recieved warning when horizon is big case env ends earlier than horizon. 
+                        # So, in the metrics I only count rewards up to where terminated or truncated fired. 
+                        # Any extra steps after done are ignored in the evaluation return.
             # if i % eval_freq == 0:
             if eval_freq and (i % eval_freq == 0):
             #--------------------------------------------------------------------------
@@ -293,10 +322,8 @@ if __name__ == "__main__":
                     # env.reset(seed=eval_seed)
                     # -------------------------------------------------------------------------
 
-
                     # execute a rollout with the trained policy
-                    eval_rollout = env.rollout(horizon, actor)
-
+                    eval_rollout = env.rollout(eval_horizon, actor)
 
                     # -----------------------------------------------------------------------------
                     # original code
@@ -355,20 +382,16 @@ if __name__ == "__main__":
     # create folder with name of version
     if actor_model == 'nn':
         save_path = os.path.join('./assets', f"{version}_nn")
-    elif actor_model == 'st':
-        save_path = os.path.join('./assets', f"{version}_st")
-    os.makedirs(save_path, exist_ok=True)
+        os.makedirs(save_path, exist_ok=True)
 
-    # save only the actor
-    base_actor = getattr(actor_net, 'module', actor_net) #getattr(obj, "attr", default): tries to read obj.attr; if it doesn’t exist, it returns default.
-                                                         # cause we have actor_network_params.module.0.module.layers.0.weight but we need layers.0.weight
-    torch.save(
-        base_actor.state_dict(),
-        os.path.join(save_path, "actor_net_state_dict.pt")
-    )
+        # save only the actor
+        base_actor = getattr(actor_net, 'module', actor_net) #getattr(obj, "attr", default): tries to read obj.attr; if it doesn’t exist, it returns default.
+                                                            # cause we have actor_network_params.module.0.module.layers.0.weight but we need layers.0.weight
+        torch.save(
+            base_actor.state_dict(),
+            os.path.join(save_path, "actor_net_state_dict.pt")
+        )
 
-
-    if actor_model == 'nn':
         np.savez(
             os.path.join(save_path, "actor_net_init_params.npz"),
             input_dim=input_dim, output_dim=output_dim,
@@ -377,15 +400,24 @@ if __name__ == "__main__":
             horizon=horizon,
         )
     elif actor_model == 'st':
+        save_path = os.path.join('./assets', f"{version}_st")
+        os.makedirs(save_path, exist_ok=True)
+
+        # save only the actor
+        base_actor = getattr(actor_soft, 'module', actor_soft) #getattr(obj, "attr", default): tries to read obj.attr; if it doesn’t exist, it returns default.
+                                                            # cause we have actor_network_params.module.0.module.layers.0.weight but we need layers.0.weight
+        torch.save(
+            base_actor.state_dict(),
+            os.path.join(save_path, "actor_soft_state_dict.pt")
+        )
         np.savez(
-            os.path.join(save_path, "actor_net_init_params.npz"),
+            os.path.join(save_path, "actor_soft_init_params.npz"),
             input_dim=input_dim, output_dim=output_dim,
             depth=depth_soft, beta=beta_soft, apply_batchNorm=batchnorm_soft,
             horizon=horizon,
         )
 
+
     with open(os.path.join(save_path, "learning_logs.pkl"), 'wb') as file:
         pickle.dump(logs, file)
     # endregion ===============================================================
-
-# %%

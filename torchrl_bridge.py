@@ -88,6 +88,12 @@ class ElementActorNet(nn.Module):
         return x
 
 
+
+
+# new version of the soft tree actor
+# ============================================================
+# ElementActorSoftTree: soft decision tree actor
+# ============================================================
 class ElementActorSoftTree(nn.Module):
     """
     Soft Decision Tree actor that outputs per-action log-probabilities.
@@ -149,6 +155,14 @@ class ElementActorSoftTree(nn.Module):
                 logQ = self.logQ  # (L, C)
             
                 # unsqueeze parts  prepares logQ for broadcasting with log_mu during the addition
+                # To make PPO like supervised leaning part, I return the log of probabilities and then later on
+                # in ProbabilisticActor, I set in_keys=[{"logits": log_probs}], so cause I consider the logit as key,
+                # ProbabilisticActor will do softmax again on log-probabilites, so the training is right
+                # So I returned the log-probabilites do to the following reasons: 
+                # - I want to follow the same structure as supervised soft tree
+                # - I want to have log scale to make the calculations numerically stable
+                # - I want to use the same key "logits" in ProbabilisticActor, otherwise I could just calculate the sum of exp(log_mu + logQ) here and return the probabilities directly
+                    # in that case I need to change the key in ProbabilisticActor to "probs" instead of "logits"
                 y_log_pro = torch.logsumexp(log_mu.unsqueeze(-1) + logQ.unsqueeze(0), dim=1)  # (N, C)
                 return y_log_pro
             
@@ -172,12 +186,12 @@ class ElementActorSoftTree(nn.Module):
         single = (x.ndim == 1)          # remember original shape
 
         mu = self._forward(x)           # (1, L) if single else (N, L)
-        logits = self.head(mu)          # (1, C) if single else (N, C) -  log-probabilities per class(C)
+        log_prob = self.head(mu)          # (1, C) if single else (N, C) -  log-probabilities per class(C)
 
         if single: #removes the first dimension (only one sample in batch)
-            logits = logits.squeeze(0)  # -> (C,) so policy outputs scalar action and this is compatible with CategoricalDist in ProbabilisticActor function
+            log_prob = log_prob.squeeze(0)  # -> (C,) so policy outputs scalar action and this is compatible with CategoricalDist in ProbabilisticActor function
 
-        return logits.contiguous() # get a tensor with standard memory layout
+        return log_prob.contiguous() # get a tensor with standard memory layout - the logits is log-probabilities per class(C) not raw logits
 
 
     def _forward(self, X: torch.Tensor):
@@ -213,9 +227,9 @@ class ElementActorSoftTree(nn.Module):
         mu = _mu.view(N, self.leaf_node_num_) # flatten to 2D tensor (N, L)
         return mu
 
-    # The following function is different from the supervised soft tree, in PPO cause when the collector calls the policy 
-    # at each env step with a single environment, it passes the observation exactly as the env emits it: shape (D,) (a single sample, no batch dim). 
-    # Later, during training, minibatches are (N, D). So PPO hits both cases. that is why I need to define if X.ndim == 1:. 
+    # The following function is different from the supervised soft tree. In PPO cause when the collector calls the policy 
+    # at each env step with a single environment(TorchRL’s collector calls the policy with one observation at a time), it passes the observation exactly as the env emits it: shape (D,) (a single sample, no batch dim). 
+    # Later, during training, minibatches are (N, D). So PPO hits both cases. That is why I need to define if X.ndim == 1:. 
     def _data_augment(self, X: torch.Tensor) -> torch.Tensor:
         """
         step-time:   X: (D,) ──unsqueeze──> (1, D) ──concat bias──> (1, D+1)
@@ -236,4 +250,4 @@ class ElementActorSoftTree(nn.Module):
             raise ValueError("the tree depth should be at least 1, but got {} instead.")
         if not self.beta > 0:
             raise ValueError("The temperature, and beta should be positive, but got {} instead.")
-# %%
+        
