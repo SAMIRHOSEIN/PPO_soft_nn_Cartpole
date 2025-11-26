@@ -137,8 +137,8 @@ ELE_PPO_EVAL_EXPLORE_TYPE = ExplorationType.DETERMINISTIC # This must be determi
 # ELE_ACTOR_VERSION = '20251024-172647_st' # This is st with d=8 for defaulthorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
 
 # after correcting the element actor soft class and correct ele_ppo_training.py and ele_exp_actor.py accordingly
-# ELE_ACTOR_VERSION = '20251125-183531_nn' # LE_PPO_NUM_ITERATIONS = 1500
-
+ELE_ACTOR_VERSION = '20251125-202955_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION = '20251126-073039_st' # This is st with d=8 for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
 
 
 

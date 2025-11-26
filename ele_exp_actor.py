@@ -32,6 +32,7 @@ if __name__ == "__main__":
     actor_model = test_constants_carpol.actor_model
 
 
+    print(f"n_episodes: {n_episodes}")
 
     # soft tree parameters
     depth_soft = test_constants_carpol.depth_soft
@@ -233,8 +234,8 @@ if __name__ == "__main__":
 
 
     print(f"Average reward: {np.mean(logs['ep reward'])}")
-    print(f"Initial state: {logs['observation'][0][0]}")
-    print(f"Final state: {logs['observation'][0][-1]}")
+    print(f"Initial state for first episode: {logs['observation'][0][0]}")
+    print(f"Final state for first episode: {logs['observation'][0][-1]}")
 
 
     # save experience
@@ -259,9 +260,16 @@ if __name__ == "__main__":
 
 # I added the following lines to find out the model structure of David's assets or any other model that we may use later
 # --- 1) NPZ: model init params ---
-npz_path = f"assets/{actor_version}/actor_net_init_params.npz"
-npz = np.load(npz_path, allow_pickle=True)  
-print("keys in actor_net_init_params.npz:", list(npz.keys()))
+if actor_model == 'nn':
+    npz_path = f"assets/{actor_version}/actor_net_init_params.npz"
+    npz = np.load(npz_path, allow_pickle=True)  
+    print("keys in actor_net_init_params.npz:", list(npz.keys()))
+
+elif actor_model == 'st' or actor_model == 'ft':
+    npz_path = f"assets/{actor_version}/actor_soft_init_params.npz"
+    npz =  np.load(npz_path, allow_pickle=True)  
+    print("keys in actor_soft_init_params.npz:", list(npz.keys()))
+
 
 input_dim = int(npz["input_dim"].item())
 output_dim = int(npz["output_dim"].item())
@@ -277,15 +285,6 @@ elif actor_model == 'st':
     print(f"input_dim= {input_dim}, output_dim= {output_dim}, horizon= {horizon}, depth= {depth_soft}, beta= {beta_soft}, batchnorm= {batchnorm_soft}\n")
 
 # %%
-
-
-
-
-
-
-
-
-
 
 
 # action distribution summary
