@@ -209,12 +209,22 @@ ELE_TRAINING_ACTOR_RESET_SEED = 4321  # used before eval_rollout during training
 
 
 # for deafult horizon but soft tree has depth = 8 and ELE_PPO_NUM_ITERATIONS = 1500
-ELE_ACTOR_VERSION_nn = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
-ELE_ACTOR_VERSION_st = '20251024-172647_st' # This is st with d=8 for defaul thorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION_nn = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+# ELE_ACTOR_VERSION_st = '20251024-172647_st' # This is st with d=8 for defaul thorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
 
 
 # ELE_ACTOR_VERSION_nn = '20251024-122254_nn' # ELE_PPO_NUM_ITERATIONS = 1500
 # ELE_ACTOR_VERSION_st = '20251025-134508_st' # This is st with d=8 and beta =20 for defaul thorizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+
+
+
+ELE_ACTOR_VERSION_nn = '20251125-202955_nn' # ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION_st = '20251126-073039_st' # This is st with d=8 for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+
+
+
+
+
 
 WINDOW = 100 #50 100  # for rolling average - integer
 # endregion ==============================================================

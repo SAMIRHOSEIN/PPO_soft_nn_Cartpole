@@ -12,8 +12,7 @@ beta_soft  = test_constants_carpol.beta_soft
 depth_soft = test_constants_carpol.depth_soft
 
 
-actors = {actor_nn, actor_st}
-
+actors = [actor_nn, actor_st]
 
 for actor_version in actors:
     # 1) Load logs
