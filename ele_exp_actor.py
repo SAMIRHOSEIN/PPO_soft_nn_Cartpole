@@ -35,8 +35,8 @@ if __name__ == "__main__":
     print(f"n_episodes: {n_episodes}")
 
     # soft tree parameters
-    depth_soft = test_constants_carpol.depth_soft
-    beta_soft = test_constants_carpol.beta_soft
+    # depth_soft = test_constants_carpol.depth_soft
+    # beta_soft = test_constants_carpol.beta_soft
     batchnorm_soft = test_constants_carpol.batchnorm_soft
 
     actor_version = test_constants_carpol.ELE_ACTOR_VERSION
@@ -47,6 +47,10 @@ if __name__ == "__main__":
     elif actor_model == 'st' or actor_model == 'ft':
         state_dict_path = os.path.join('./assets', f"{actor_version}", "actor_soft_state_dict.pt")
         init_params_path = os.path.join('./assets', f"{actor_version}", "actor_soft_init_params.npz")
+
+        with np.load(init_params_path) as npz:
+            depth_soft = int(npz["depth"].item())
+            beta_soft = float(npz["beta"].item())
 
     init_params = np.load(init_params_path)
     input_dim = init_params['input_dim'].item()
@@ -118,10 +122,6 @@ if __name__ == "__main__":
     elif actor_model == 'st':
         print(f"actor_model: {actor_model}")
 
-        # soft tree parameters
-        depth_soft = test_constants_carpol.depth_soft
-        beta_soft = test_constants_carpol.beta_soft
-        batchnorm_soft = test_constants_carpol.batchnorm_soft
 
         print(f"depth_soft: {depth_soft}")
         print(f"beta_soft: {beta_soft}")

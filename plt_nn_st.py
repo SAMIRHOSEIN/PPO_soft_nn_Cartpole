@@ -8,9 +8,14 @@ import test_constants_carpol
 actor_nn = test_constants_carpol.ELE_ACTOR_VERSION_nn
 actor_st = test_constants_carpol.ELE_ACTOR_VERSION_st
 WINDOW = test_constants_carpol.WINDOW  
-beta_soft  = test_constants_carpol.beta_soft
-depth_soft = test_constants_carpol.depth_soft
 
+
+# beta_soft  = test_constants_carpol.beta_soft
+# depth_soft = test_constants_carpol.depth_soft
+init_params_path = os.path.join('./assets', f"{actor_st}", "actor_soft_init_params.npz")
+with np.load(init_params_path) as npz:
+    depth_soft = int(npz["depth"].item())
+    beta_soft = float(npz["beta"].item())
 
 actors = [actor_nn, actor_st]
 
