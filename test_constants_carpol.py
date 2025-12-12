@@ -238,4 +238,14 @@ ELE_ACTOR_VERSION_st = '20251201-121318_st'   # T = 1.0, This is st with d=8 for
 
 
 WINDOW = 100 #50 100  # for rolling average - integer
+
+
+# The following is final result for report after finalizing all changes
+ELE_ACTOR_VERSION_nn_vs_st = '20251201-104423_nn'  # ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION_st_1 = '20251201-121318_st'   # T = 1.0, This is st with d=8 for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION_st_2 = '20251201-141306_st'  # T= 0.05, This is st with d=8 for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500
+ELE_ACTOR_VERSION_st_3 = '20251211-192154_st' # T = 1000, This is st with d=8 for default horizon for env and horizen = 30 for training, and for new cartpole without reset seed and ELE_PPO_NUM_ITERATIONS = 1500, beta = 1000
+
+
+actor_st_versions = [ELE_ACTOR_VERSION_st_1, ELE_ACTOR_VERSION_st_2, ELE_ACTOR_VERSION_st_3]
 # endregion ==============================================================

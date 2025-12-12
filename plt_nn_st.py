@@ -101,17 +101,10 @@ plt.show()
 
 
 
-
-
-
-
 #%%
 
 actor_nn = test_constants_carpol.ELE_ACTOR_VERSION_nn_vs_st
 actor_st_versions = test_constants_carpol.actor_st_versions
-
-
-WINDOW = test_constants_carpol.WINDOW
 
 
 def rolling_mean_strict(x, window):
@@ -131,10 +124,7 @@ def load_soft_params(actor_version):
     with np.load(init_params_path) as npz:
         depth_soft     = int(npz["depth"].item())
         beta_soft      = float(npz["beta"].item())
-        batchnorm_soft = bool(npz["batchnorm"].item())
-        reg_type       = npz["reg_type"].item()
-        reg_lambda     = float(npz["reg_lambda"].item())
-    return depth_soft, beta_soft, batchnorm_soft, reg_type, reg_lambda
+    return depth_soft, beta_soft
 
 
 # ============================================================
@@ -169,13 +159,11 @@ for actor_version in actor_st_versions:
     x = np.arange(len(ra))
 
     # Load parameters for legend
-    depth_soft, beta_soft, batchnorm_soft, reg_type, reg_lambda = load_soft_params(actor_version)
+    depth_soft, beta_soft = load_soft_params(actor_version)
 
     label = (
         f"{actor_version} "
-        f"(ST, d={depth_soft}, β={beta_soft}, "
-        f"bn={'Y' if batchnorm_soft else 'N'}, "
-        f"reg={reg_type}, λ={reg_lambda})"
+        f"(ST, d={depth_soft}, β={beta_soft})"
     )
 
     plt.plot(x, ra, label=label, alpha=0.9)
