@@ -30,6 +30,7 @@ if __name__ == "__main__":
     n_episodes = test_constants_carpol.ELE_ACTOR_N_EPISODES 
     explore_type = test_constants_carpol.ELE_ACTOR_EXPLORE_TYPE
     actor_model = test_constants_carpol.actor_model
+    actor_version = test_constants_carpol.ELE_ACTOR_VERSION
 
 
     print(f"n_episodes: {n_episodes}")
@@ -39,7 +40,6 @@ if __name__ == "__main__":
     # beta_soft = test_constants_carpol.beta_soft
     batchnorm_soft = test_constants_carpol.batchnorm_soft
 
-    actor_version = test_constants_carpol.ELE_ACTOR_VERSION
     if actor_model == 'nn':
         state_dict_path = os.path.join('./assets', f"{actor_version}", "actor_net_state_dict.pt")
         init_params_path = os.path.join('./assets', f"{actor_version}", "actor_net_init_params.npz")

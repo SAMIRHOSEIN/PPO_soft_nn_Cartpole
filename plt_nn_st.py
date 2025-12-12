@@ -98,3 +98,92 @@ plt.grid(True, alpha=0.3)
 plt.legend()
 plt.tight_layout()
 plt.show()
+
+
+
+
+
+
+
+#%%
+
+actor_nn = test_constants_carpol.ELE_ACTOR_VERSION_nn_vs_st
+actor_st_versions = test_constants_carpol.actor_st_versions
+
+
+WINDOW = test_constants_carpol.WINDOW
+
+
+def rolling_mean_strict(x, window):
+    x = np.asarray(x, dtype=float)
+    one_over_window = np.ones(window) / window
+    roll_mean = np.convolve(x, one_over_window, mode='valid')
+    hide = np.full(window - 1, np.nan)
+    return np.concatenate([hide, roll_mean])
+
+
+def load_soft_params(actor_version):
+    """
+    Load depth, beta, batchnorm, reg_type, reg_lambda
+    from assets/<actor_version>/actor_soft_init_params.npz
+    """
+    init_params_path = os.path.join('./assets', actor_version, "actor_soft_init_params.npz")
+    with np.load(init_params_path) as npz:
+        depth_soft     = int(npz["depth"].item())
+        beta_soft      = float(npz["beta"].item())
+        batchnorm_soft = bool(npz["batchnorm"].item())
+        reg_type       = npz["reg_type"].item()
+        reg_lambda     = float(npz["reg_lambda"].item())
+    return depth_soft, beta_soft, batchnorm_soft, reg_type, reg_lambda
+
+
+# ============================================================
+# Plot: One figure comparing all actors (NN + all STs)
+# ============================================================
+plt.figure(figsize=(10, 6))
+
+# 1) NN baseline
+pkl_path_nn = os.path.join('./assets', actor_nn, "learning_logs.pkl")
+with open(pkl_path_nn, "rb") as f:
+    logs_nn = pickle.load(f)
+
+if "reward" not in logs_nn or len(logs_nn["reward"]) == 0:
+    raise KeyError(f"'reward' series missing or empty in {actor_nn}")
+
+series_nn = np.asarray(logs_nn["reward"], dtype=float)
+ra_nn = rolling_mean_strict(series_nn, WINDOW)
+x_nn = np.arange(len(ra_nn))
+plt.plot(x_nn, ra_nn, label=f"{actor_nn} (NN, window={WINDOW})", alpha=0.9, linewidth=2)
+
+# 2) All soft-tree actors
+for actor_version in actor_st_versions:
+    pkl_path = os.path.join('./assets', actor_version, "learning_logs.pkl")
+    with open(pkl_path, "rb") as f:
+        logs = pickle.load(f)
+
+    if "reward" not in logs or len(logs["reward"]) == 0:
+        raise KeyError(f"'reward' series missing or empty in {actor_version}")
+
+    series = np.asarray(logs["reward"], dtype=float)
+    ra = rolling_mean_strict(series, WINDOW)
+    x = np.arange(len(ra))
+
+    # Load parameters for legend
+    depth_soft, beta_soft, batchnorm_soft, reg_type, reg_lambda = load_soft_params(actor_version)
+
+    label = (
+        f"{actor_version} "
+        f"(ST, d={depth_soft}, β={beta_soft}, "
+        f"bn={'Y' if batchnorm_soft else 'N'}, "
+        f"reg={reg_type}, λ={reg_lambda})"
+    )
+
+    plt.plot(x, ra, label=label, alpha=0.9)
+
+plt.xlabel("Episode (index)")
+plt.ylabel("Rolling Avg Reward (training)")
+plt.title("Rolling Average Training Reward per Episode (NN vs Soft Trees)")
+plt.grid(True, alpha=0.3)
+plt.legend()
+plt.tight_layout()
+plt.show()
