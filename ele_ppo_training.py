@@ -67,7 +67,6 @@ if __name__ == "__main__":
         eval_horizon = 500  # CartPole-v1 default max_episode_steps
 
 
-
     # # Seed once before the collector (for reproducible first reset)
     # random_seed_before_collector = test_constants_carpol.ELE_TRAINING_ACTOR_RANDOM_STATE_CARTPOLE
     # env.reset(seed=random_seed_before_collector)
@@ -106,15 +105,12 @@ if __name__ == "__main__":
         )
 
 
-
     elif actor_model == 'st':
         # soft tree parameters
         depth_soft = test_constants_carpol.depth_soft
         beta_soft = test_constants_carpol.beta_soft
         batchnorm_soft = test_constants_carpol.batchnorm_soft
 
-
-            
             
         print(f"depth_soft: {depth_soft}")
         print(f"beta_soft: {beta_soft}")
@@ -194,8 +190,6 @@ if __name__ == "__main__":
     frames_per_batch = test_constants_carpol.ELE_PPO_FRAMES_PER_BATCH
     total_frames = test_constants_carpol.ELE_PPO_TOTAL_FRAMES
 
-
-
     collector = SyncDataCollector(
         create_env_fn=lambda: env,
         policy=actor,
@@ -204,8 +198,6 @@ if __name__ == "__main__":
         split_trajs=False,
         device=device
     )
-
-
 
     replay_buffer = ReplayBuffer(
         storage=LazyTensorStorage(max_size=frames_per_batch),
@@ -316,7 +308,6 @@ if __name__ == "__main__":
                 # it will then execute this policy at each step.
                 with set_exploration_type(eval_explore_type), torch.no_grad():
 
-
                     # -------------------------------------------------------------------------
                     # force identical initial state for evaluation in each iteration
                     # env.reset(seed=eval_seed)
@@ -326,12 +317,6 @@ if __name__ == "__main__":
                     eval_rollout = env.rollout(eval_horizon, actor)
 
                     # -----------------------------------------------------------------------------
-                    # original code
-                    # logs["eval reward"].append(eval_rollout["next", "reward"].mean().item())
-                    # logs["eval reward (sum)"].append(
-                    #     eval_rollout["next", "reward"].sum().item()
-                    # )
-
                     # my code to compute episode return from rewards and done flags
                     eval_rewards = eval_rollout["next", "reward"].detach().cpu().view(-1)
                     eval_terminated = eval_rollout["next", "terminated"].detach().cpu().view(-1)

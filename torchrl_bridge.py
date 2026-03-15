@@ -88,8 +88,6 @@ class ElementActorNet(nn.Module):
         return x
 
 
-
-
 # new version of the soft tree actor
 # ============================================================
 # ElementActorSoftTree: soft decision tree actor

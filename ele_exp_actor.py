@@ -19,7 +19,6 @@ from torchrl.envs.utils import ExplorationType, set_exploration_type
 import pickle
 
 
-
 if __name__ == "__main__":
     import importlib
     import test_constants_carpol
@@ -62,7 +61,6 @@ if __name__ == "__main__":
     assert horizon == init_params['horizon'].item(), \
         f"Actor was not trained for horizon={horizon} (training horizon={init_params['horizon'].item()})"
 
-    
 
     # ------------------------------------------------------------------------------
     # recreate environment
@@ -158,39 +156,7 @@ if __name__ == "__main__":
     eval_str = ""
 
 
-
-
-
-
     # -----------------------------------------------------------------------------------------------------------------
-    # original code:
-    # we don’t use terminated / truncated at all in originl code
-    # we sum the entire reward tensor from eval_rollout["next", "reward"], which may include:
-    # steps after the environment is done (if rollout continues),
-    # or even parts of a new episode if the env auto-resets inside rollout.
-    # So this file does not yet enforce “episode return = sum of rewards up to terminated | truncated” the way I did in ele_ppo_training.py.
-
-    # with tqdm(total=horizon * n_episodes) as pbar:
-    #     with set_exploration_type(explore_type), torch.no_grad():
-    #         for _ in range(n_episodes):
-    #             # execute a rollout with the trained policy
-    #             eval_rollout = env.rollout(horizon, actor)
-
-    #             logs["observation"].append(eval_rollout["observation"].cpu().numpy())
-    #             logs["action"].append(eval_rollout["action"].cpu().numpy())
-    #             logs["reward"].append(eval_rollout["next", "reward"].cpu().numpy())
-    #             logs["ep reward"].append(eval_rollout["next", "reward"].sum().item())
-
-    #             eval_str = (
-    #                 f"ep reward: {logs['ep reward'][-1]: 4.4f} "
-    #                 f"(init: {logs['ep reward'][0]: 4.4f}), "
-    #             )
-    #             pbar.update(eval_rollout.numel())
-    #             pbar.set_description(eval_str)
-
-    #             del eval_rollout
-
-
     # The my code below enforces “episode return = sum of rewards up to terminated | truncated”
     with tqdm(total=eval_horizon  * n_episodes) as pbar: # This line is just for progress bar not affect the evaluation
         with set_exploration_type(explore_type), torch.no_grad():
@@ -231,8 +197,6 @@ if __name__ == "__main__":
                 del eval_rollout
 
     # -----------------------------------------------------------------------------------------------------------------
-
-
     print(f"Average reward: {np.mean(logs['ep reward'])}")
     print(f"Initial state for first episode: {logs['observation'][0][0]}")
     print(f"Final state for first episode: {logs['observation'][0][-1]}")
@@ -285,7 +249,6 @@ elif actor_model == 'st':
     print(f"input_dim= {input_dim}, output_dim= {output_dim}, horizon= {horizon}, depth= {depth_soft}, beta= {beta_soft}, batchnorm= {batchnorm_soft}\n")
 
 # %%
-
 
 # action distribution summary
 all_actions = np.concatenate(logs["action"])
