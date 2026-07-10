@@ -58,11 +58,6 @@ catches up and matches it at convergence.
 - A shared MLP **critic** ([`ValueNet`](torchrl_bridge.py)) estimates state values for GAE.
 
 
-```
-```
-Tested with Python 3.10.
-
----
 
 ## Usage
 
