@@ -120,21 +120,6 @@ python plt_nn_st.py
 
 ---
 
-## Citation
-
-If you use this code, please cite the accompanying work:
-
-```bibtex
-@article{moayyedi2026interpretable,
-  title   = {Interpretable Deep Reinforcement Learning for Element-level Bridge Life-cycle Optimization},
-  author  = {Moayyedi, Amir and Yang, David},
-  journal = {arXiv preprint arXiv:2604.02528},
-  year    = {2026}
-}
-```
-
----
-
 ## License
 
 Released under the [MIT License](LICENSE).
