@@ -59,7 +59,7 @@ catches up and matches it at convergence.
 
 
 ```
-
+```
 Tested with Python 3.10.
 
 ---
