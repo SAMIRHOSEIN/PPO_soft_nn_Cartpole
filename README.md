@@ -57,35 +57,7 @@ catches up and matches it at convergence.
   activations, used as the baseline.
 - A shared MLP **critic** ([`ValueNet`](torchrl_bridge.py)) estimates state values for GAE.
 
----
 
-## Repository structure
-
-```text
-PPO_soft_nn_Cartpole/
-├── ele_ppo_training.py        # Main PPO training script (NN or Soft Tree actor)
-├── ele_exp_actor.py           # Evaluate a saved actor over many episodes
-├── plt_nn_st.py               # Plotting / learning-curve comparison utilities
-├── torchrl_bridge.py          # CartPole env wrapper + actor/critic model definitions
-├── test_constants_carpol.py   # Centralized experiment configuration and run selection
-├── assets/                    # Saved model weights, init params, and training logs per run
-├── figures/                   # Result figures used in this README
-└── requirements.txt           # Python dependencies
-```
-
-Each run in `assets/<timestamp>_<nn|st>/` contains the actor `state_dict`, its initialization
-parameters (`.npz`), the training logs (`learning_logs.pkl`), and evaluation experience.
-
----
-
-## Installation
-
-```bash
-git clone https://github.com/SAMIRHOSEIN/PPO_soft_nn_Cartpole.git
-cd PPO_soft_nn_Cartpole
-
-python -m venv .venv && source .venv/bin/activate    # optional
-pip install -r requirements.txt
 ```
 
 Tested with Python 3.10.
