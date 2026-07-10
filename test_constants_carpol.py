@@ -1,4 +1,3 @@
-from turtle import st
 import numpy as np
 
 from torchrl.envs.utils import ExplorationType
