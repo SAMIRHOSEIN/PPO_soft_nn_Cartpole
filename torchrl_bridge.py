@@ -49,7 +49,8 @@ class ValueNet(nn.Module):
         # no need for input_dim due to LazyLinear
         super().__init__()
         layers = [nn.Linear(input_dim, value_cells, device=device), nn.ELU()]
-        layers = layers + [nn.Linear(value_cells, value_cells, device=device), nn.ELU()] * value_layers
+        for _ in range(value_layers):
+            layers += [nn.Linear(value_cells, value_cells, device=device), nn.ELU()]
         layers.append(nn.Linear(value_cells, 1, device=device))
         self.layers = nn.ModuleList(layers)
 
@@ -78,7 +79,8 @@ class ElementActorNet(nn.Module):
         # Change LazyLinear to Linear
         super().__init__()
         layers = [nn.Linear(input_dim, actor_cells, device=device), nn.ELU()]
-        layers = layers + [nn.Linear(actor_cells, actor_cells, device=device), nn.ELU()] * actor_layers
+        for _ in range(actor_layers):
+            layers += [nn.Linear(actor_cells, actor_cells, device=device), nn.ELU()]
         layers.append(nn.Linear(actor_cells, output_dim, device=device))
         self.layers = nn.ModuleList(layers)
 
